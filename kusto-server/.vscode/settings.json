@@ -1,0 +1,9 @@
+{
+  "github.copilot.chat.modelContextProtocol.servers": [
+    {
+      "name": "Kusto MCP Server",
+      "command": "node --no-warnings dist/index.js",
+      "cwd": "${workspaceFolder}"
+    }
+  ]
+}

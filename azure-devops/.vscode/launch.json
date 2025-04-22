@@ -1,0 +1,33 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+        "name": "Launch via NPM",
+        "request": "launch",
+        "runtimeArgs": [
+            "run-script",
+            "debug",
+            "--inspect-brk"
+        ],
+        "runtimeExecutable": "npm",
+        "skipFiles": [
+            "<node_internals>/**"
+        ],
+        "type": "node",
+        "sourceMaps": true,
+        "outFiles": ["${workspaceFolder}/dist/**/*.js"],
+        "console": "integratedTerminal",
+        "internalConsoleOptions": "neverOpen",
+        "resolveSourceMapLocations": [
+          "${workspaceFolder}/dist/**/*.js",
+          "${workspaceFolder}/src/**/*.ts"
+        ],
+        "smartStep": true,
+        "env": {
+          "NODE_ENV": "development",
+          "NODE_OPTIONS": "--enable-source-maps"
+        },
+        "preLaunchTask": "npm: rebuild"
+    }
+  ]
+}

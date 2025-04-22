@@ -1,0 +1,9 @@
+{
+  "github.copilot.chat.modelContextProtocol.servers": [
+    {
+      "name": "Azure devops MCP Server",
+      "command": "node --no-warnings dist/index.js",
+      "cwd": "${workspaceFolder}"
+    }
+  ]
+}
