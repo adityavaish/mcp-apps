@@ -86,10 +86,10 @@ Connects to Azure Data Explorer (Kusto) database, exposing table schemas and pro
 
 ## Security Considerations
 
-- These servers only allow operations permitted by your authentication permissions
-- Basic security measures prevent destructive operations
-- Authentication uses Azure AD for secure access
-- Consider additional security measures depending on your specific requirements
+- These servers only allow operations permitted by your authentication permissions.
+- Basic security measures prevent destructive operations.
+- Authentication uses Azure AD for secure access.
+- Consider additional security measures depending on your specific requirements.
 
 ## License
 
