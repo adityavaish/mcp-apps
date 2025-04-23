@@ -1,43 +1,14 @@
-# MCP Server Collection
+# Kusto MCP Server
 
-This repository contains [MCP (Model Context Protocol)](https://modelcontextprotocol.io/) servers that connect to various Azure services, exposing resources and providing tools for AI assistants.
+An [MCP (Model Context Protocol)](https://modelcontextprotocol.io/) server that connects to your Azure Data Explorer (Kusto) database, exposing table schemas as resources and providing tools for data analysis.
 
-## Available MCP Servers
+## Features
 
-### Azure DevOps MCP Server
-
-Connects to Azure DevOps, exposing projects, repositories, and work items as resources.
-
-**Features:**
-- Connection to Azure DevOps using browser-based authentication
-- Project resources (projects, repositories, work items)
-- Tools for querying and working with work items
-- Tools for interacting with repositories and pull requests
-- Project management tools
-
-**Available Tools:**
-- `getProjects` - Lists all available projects in your Azure DevOps organization
-- `getRepositories` - Gets repositories for a specified project
-- `getWorkItems` - Queries work items based on filters and criteria
-- `createWorkItem` - Creates a new work item in a project
-- `getPullRequests` - Gets pull requests for a repository with filtering options
-
-### Kusto MCP Server
-
-Connects to Azure Data Explorer (Kusto) database, exposing table schemas and providing data analysis tools.
-
-**Features:**
-- Connection to Kusto Database using service principal or managed identity authentication
-- Schema resources (table schemas and sample data)
-- KQL Query tools for running read-only queries
-- Data analysis tools for common tasks
-- Analysis prompts and templates
-
-**Available Tools:**
-- `executeQuery` - Executes a read-only KQL query against your database
-- `getTableInfo` - Gets detailed schema and sample data for a specified table
-- `findTables` - Finds tables that match a specified name pattern
-- `analyzeData` - Performs various data analyses including summary statistics, time series analysis, top values analysis, outlier detection, and correlation analysis
+- **Connection to Kusto Database**: Securely connects to your Azure Data Explorer environment using service principal or managed identity authentication.
+- **Schema Resources**: Exposes table schemas and sample data as resources for AI assistants to understand your data structure.
+- **KQL Query Tools**: Provides tools for running read-only KQL queries against your database.
+- **Data Analysis Tools**: Pre-built tools for common data analysis tasks like time series analysis, anomaly detection, etc.
+- **Analysis Prompts**: Includes prompt templates for guiding AI assistants in performing common data analysis tasks.
 
 ## Setup Instructions
 
@@ -46,19 +17,21 @@ Connects to Azure Data Explorer (Kusto) database, exposing table schemas and pro
 - VS Code (latest version recommended)
 - Node.js 18.0 or higher
 - npm 8.0 or higher
-- Access to appropriate Azure services
-- Proper authentication credentials
+- Access to an Azure Data Explorer (Kusto) database
+- Proper authentication credentials (service principal or managed identity)
 
-## Installation with GitHub Copilot UI
+## Using with GitHub Copilot in VS Code
+
+### Installation with GitHub Copilot UI
 
 1. Ensure you have the GitHub Copilot extension installed in VS Code
-   - If not, open VS Code Extensions view (Ctrl+Shift+X)
-   - Search for "GitHub Copilot"
-   - Click "Install"
+  - If not, open VS Code Extensions view (Ctrl+Shift+X)
+  - Search for "GitHub Copilot"
+  - Click "Install"
 
 2. Open VS Code and the GitHub Copilot Chat panel
-   - Use the keyboard shortcut (Ctrl+Shift+I) or
-   - Click on the Copilot Chat icon in the activity bar
+  - Use the keyboard shortcut (Ctrl+Shift+I) or
+  - Click on the Copilot Chat icon in the activity bar
 
 3. Select "Agent Mode" in the Copilot Chat panel.
 
@@ -68,27 +41,27 @@ Connects to Azure Data Explorer (Kusto) database, exposing table schemas and pro
 
 6. Choose **Command (stdio)** as the tool type.
 
-7. Type the appropriate command to install and run your desired MCP server:
+7. Type the following command to install and run the Kusto MCP server:
+  ```bash
+  npx @mcp-apps/kusto-mcp-server
+  ```
 
-   **For Azure DevOps:**
-   ```bash
-   npx @mcp-apps/azure-devops-mcp-server
-   ```
+8. Follow the browser authentication prompts to connect to your Azure Data Explorer resources.
 
-   **For Kusto:**
-   ```bash
-   npx @mcp-apps/kusto-mcp-server
-   ```
+9. Once authenticated, Copilot will be able to assist with KQL queries and data analysis against your Kusto database.
 
-8. Follow the browser authentication prompts to connect to your Azure resources.
+## Available Tools
 
-9. Once authenticated, Copilot will be able to assist with tasks specific to the connected service.
+- `executeQuery` - Executes a read-only KQL query against your database
+- `getTableInfo` - Gets detailed schema and sample data for a specified table
+- `findTables` - Finds tables that match a specified name pattern
+- `analyzeData` - Performs various data analyses including summary statistics, time series analysis, top values analysis, outlier detection, and correlation analysis
 
 ## Security Considerations
 
-- These servers only allow operations permitted by your authentication permissions
-- Basic security measures prevent destructive operations
-- Authentication uses Azure AD for secure access
+- This server only allows read-only operations to protect your data
+- Contains basic security measures to prevent destructive operations
+- Uses Azure AD authentication for secure database access
 - Consider additional security measures depending on your specific requirements
 
 ## License
