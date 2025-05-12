@@ -1,11 +1,26 @@
 // PDF Service for handling PDF document operations
 import * as fs from 'fs';
 import * as path from 'path';
+import * as url from 'url';
 import * as pdfjsLib from 'pdfjs-dist';
 import { PDFDocument, StandardFonts, rgb, PageSizes, degrees } from 'pdf-lib';
 
 // Set the worker source path
 pdfjsLib.GlobalWorkerOptions.workerSrc = path.join(__dirname, '../../node_modules/pdfjs-dist/build/pdf.worker.js');
+
+/**
+ * Converts a file URL to a local file path
+ * @param fileUrl URL with file:// protocol
+ * @returns Local file path
+ */
+function fileUrlToPath(fileUrl: string): string {
+  if (fileUrl.startsWith('file://')) {
+    // Convert file URL to local path
+    return url.fileURLToPath(fileUrl);
+  }
+  // If it's already a path, return as is
+  return fileUrl;
+}
 
 interface PDFMetadata {
   fileName: string;
@@ -64,22 +79,24 @@ interface SplitDocumentParams {
   outputFilePath: string;
 }
 
-export class PDFService {
-  /**
+export class PDFService {  /**
    * Extracts text from a PDF document
    * @param filePath Path to the PDF file
    * @param pageNumbers Optional specific pages to extract from
    * @returns Array of extracted text by page
    */
   static async extractText(filePath: string, pageNumbers?: number[]): Promise<ExtractedText[]> {
+    // Convert file URL to local path if needed
+    const localFilePath = fileUrlToPath(filePath);
+    
     // Check if file exists
-    if (!fs.existsSync(filePath)) {
-      throw new Error(`PDF file not found: ${filePath}`);
+    if (!fs.existsSync(localFilePath)) {
+      throw new Error(`PDF file not found: ${localFilePath}`);
     }
 
     try {
       // Load PDF document
-      const data = new Uint8Array(fs.readFileSync(filePath));
+      const data = new Uint8Array(fs.readFileSync(localFilePath));
       const loadingTask = pdfjsLib.getDocument({ data });
       const pdfDocument = await loadingTask.promise;
       
@@ -113,7 +130,6 @@ export class PDFService {
       throw error;
     }
   }
-
   /**
    * Extracts tables from a PDF document
    * @param filePath Path to the PDF file
@@ -121,6 +137,14 @@ export class PDFService {
    * @returns Array of extracted tables
    */
   static async extractTables(filePath: string, pageNumbers?: number[]): Promise<ExtractedTable[]> {
+    // Convert file URL to local path if needed
+    const localFilePath = fileUrlToPath(filePath);
+    
+    // Check if file exists
+    if (!fs.existsSync(localFilePath)) {
+      throw new Error(`PDF file not found: ${localFilePath}`);
+    }
+    
     // This is a placeholder implementation
     // In a real implementation, we would use a PDF processing library
     return [
@@ -133,24 +157,27 @@ export class PDFService {
         pageNumber: 1
       }
     ];
-  }
-  /**
+  }  /**
    * Gets metadata from a PDF document
    * @param filePath Path to the PDF file
    * @returns The document metadata
    */
   static async getMetadata(filePath: string): Promise<PDFMetadata> {
+    // Convert file URL to local path if needed
+    const localFilePath = fileUrlToPath(filePath);
+    
     // Check if file exists
-    if (!fs.existsSync(filePath)) {
-      throw new Error(`PDF file not found: ${filePath}`);
+    if (!fs.existsSync(localFilePath)) {
+      throw new Error(`PDF file not found: ${localFilePath}`);
     }
 
     try {
       // Get file stats
-      const stats = fs.statSync(filePath);
+      const stats = fs.statSync(localFilePath);
       const fileSize = (stats.size / (1024 * 1024)).toFixed(2) + ' MB';
-      const fileName = path.basename(filePath);      // Load PDF document
-      const data = new Uint8Array(fs.readFileSync(filePath));
+      const fileName = path.basename(localFilePath);
+      // Load PDF document
+      const data = new Uint8Array(fs.readFileSync(localFilePath));
       const loadingTask = pdfjsLib.getDocument({ data });
       const pdfDocument = await loadingTask.promise;
       
@@ -171,8 +198,7 @@ export class PDFService {
       console.error("Error getting PDF metadata:", error);
       throw error;
     }
-  }
-  /**
+  }  /**
    * Analyzes a PDF document
    * @param filePath Path to the PDF file
    * @param analysisType Type of analysis to perform
@@ -182,14 +208,17 @@ export class PDFService {
     filePath: string, 
     analysisType: 'structure' | 'content' | 'images' | 'classification'
   ): Promise<any> {
+    // Convert file URL to local path if needed
+    const localFilePath = fileUrlToPath(filePath);
+    
     // Check if file exists
-    if (!fs.existsSync(filePath)) {
-      throw new Error(`PDF file not found: ${filePath}`);
+    if (!fs.existsSync(localFilePath)) {
+      throw new Error(`PDF file not found: ${localFilePath}`);
     }
 
     try {
       // Load PDF document
-      const data = new Uint8Array(fs.readFileSync(filePath));
+      const data = new Uint8Array(fs.readFileSync(localFilePath));
       const loadingTask = pdfjsLib.getDocument({ data });
       const pdfDocument = await loadingTask.promise;
       

@@ -3,9 +3,6 @@ import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 
 import { extractTextTool } from "./tools/extract-text";
-import { extractTablesTool } from "./tools/extract-tables";
-import { getMetadataTool } from "./tools/get-metadata";
-import { editPDFTool } from "./tools/edit-pdf";
 
 async function main() {
   try {
@@ -24,27 +21,6 @@ async function main() {
       extractTextTool.description,
       extractTextTool.parameters,
       extractTextTool.handler
-    );
-
-    server.tool(
-      extractTablesTool.name,
-      extractTablesTool.description,
-      extractTablesTool.parameters,
-      extractTablesTool.handler
-    );
-
-    server.tool(
-      getMetadataTool.name,
-      getMetadataTool.description,
-      getMetadataTool.parameters,
-      getMetadataTool.handler
-    );
-
-    server.tool(
-      editPDFTool.name,
-      editPDFTool.description,
-      editPDFTool.parameters,
-      editPDFTool.handler
     );
     
     const transport = new StdioServerTransport();

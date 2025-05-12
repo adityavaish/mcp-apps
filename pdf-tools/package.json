@@ -26,7 +26,6 @@
     "@modelcontextprotocol/sdk": "^1.9.0",
     "dotenv": "^16.4.7",
     "pdf-lib": "^1.17.1",
-    "pdf-parse": "^1.1.1",
     "pdfjs-dist": "^5.2.133",
     "shx": "^0.4.0",
     "vscode-mcp-server": "^0.2.0",
