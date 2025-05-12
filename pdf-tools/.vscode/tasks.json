@@ -1,0 +1,33 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "type": "npm",
+      "script": "build",
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "problemMatcher": "$tsc",
+      "label": "npm: build",
+      "detail": "tsc"
+    },
+    {
+      "type": "npm",
+      "script": "watch",
+      "group": "build",
+      "problemMatcher": "$tsc-watch",
+      "label": "npm: watch",
+      "detail": "tsc -w",
+      "isBackground": true
+    },
+    {
+      "type": "npm",
+      "script": "rebuild",
+      "group": "build",
+      "problemMatcher": "$tsc",
+      "label": "npm: rebuild",
+      "detail": "npm run clean && npm run build"
+    }
+  ]
+}
