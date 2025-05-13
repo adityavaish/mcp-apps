@@ -3,6 +3,7 @@ import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 
 import { extractTextTool } from "./tools/extract-text";
+import { fillPdfFormTool, getPdfFormElementsTool } from "./tools/pdf-form";
 
 async function main() {
   try {
@@ -15,7 +16,7 @@ async function main() {
         tools: {},
       },
     });
-    
+
     server.tool(
       extractTextTool.name,
       extractTextTool.description,
@@ -23,6 +24,20 @@ async function main() {
       extractTextTool.handler
     );
     
+    server.tool(
+      fillPdfFormTool.name,
+      fillPdfFormTool.description,
+      fillPdfFormTool.parameters,
+      fillPdfFormTool.handler
+    );
+
+    server.tool(
+      getPdfFormElementsTool.name,
+      getPdfFormElementsTool.description,
+      getPdfFormElementsTool.parameters,
+      getPdfFormElementsTool.handler
+    );
+
     const transport = new StdioServerTransport();
     await server.connect(transport);
     console.error("PDF Tools MCP Server running on stdio");

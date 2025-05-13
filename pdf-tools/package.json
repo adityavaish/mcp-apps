@@ -18,7 +18,9 @@
     "unpublish": "npm unpublish --force",
     "setup": "ts-node setup.ts",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "test:pdf": "npm run build && node dist/test/create-sample-pdf.js && node dist/test/test-pdf-edit.js",
+    "test:pdf": "npm run build && node dist/test/create-sample-pdf.js && node dist/test/test-pdf-form.js",
+    "create-form": "npm run build && node dist/test/create-sample-pdf.js",
+    "fill-form": "npm run build && node dist/test/test-pdf-form.js",
     "debug": "npx @modelcontextprotocol/inspector node dist/index.js",
     "token": "npx vsts-npm-auth -config .npmrc"
   },
