@@ -43,6 +43,11 @@ jobs:
           registry-url: https://registry.npmjs.org/
       - run: npm install
         working-directory: ${{ matrix.package }}
+      - name: Set package version from GitHub release
+        run: |
+          VERSION=${GITHUB_REF#refs/tags/}
+          npm version --no-git-tag-version "$VERSION"
+        working-directory: ${{ matrix.package }}
       - run: npm publish
         working-directory: ${{ matrix.package }}
         env:
