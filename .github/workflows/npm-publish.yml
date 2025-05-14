@@ -12,7 +12,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        package: &package-list
+        package:
           - azure-devops
           - kusto-server
           - pdf-tools
@@ -31,7 +31,10 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        package: *package-list
+        package:
+          - azure-devops
+          - kusto-server
+          - pdf-tools
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
