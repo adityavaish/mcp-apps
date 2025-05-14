@@ -39,6 +39,23 @@ Connects to Azure Data Explorer (Kusto) database, exposing table schemas and pro
 - `findTables` - Finds tables that match a specified name pattern
 - `analyzeData` - Performs various data analyses including summary statistics, time series analysis, top values analysis, outlier detection, and correlation analysis
 
+### PDF Tools MCP Server
+
+Provides PDF processing capabilities, enabling AI assistants to extract and manipulate PDF document content.
+
+**Features:**
+- Text extraction from PDF documents
+- Form filling capabilities for PDF forms
+- PDF form element discovery and manipulation
+- Support for both local and remote PDF files
+
+**Available Tools:**
+- `extractText` - Extracts text content from PDF documents with page information
+- `fillPdfForm` - Fills in form fields in PDF documents (text fields, checkboxes, radio buttons)
+- `getPdfFormElements` - Identifies and lists all form elements in a PDF document
+- `extractTables` - Extracts tabular data from PDF documents
+- `getMetadata` - Retrieves document metadata from PDF files
+
 ## Setup Instructions
 
 ### Prerequisites
@@ -78,6 +95,11 @@ Connects to Azure Data Explorer (Kusto) database, exposing table schemas and pro
    **For Kusto:**
    ```bash
    npx @mcp-apps/kusto-mcp-server
+   ```
+   
+   **For PDF Tools:**
+   ```bash
+   npx @mcp-apps/pdf-tools-mcp-server
    ```
 
 8. Follow the browser authentication prompts to connect to your Azure resources.
