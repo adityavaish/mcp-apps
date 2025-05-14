@@ -10,23 +10,28 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        package: &package-list
+          - azure-devops
+          - kusto-server
+          - pdf-tools
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: 20
       - run: npm install
-      - run: npm build
+        working-directory: ${{ matrix.package }}
+      - run: npm run build
+        working-directory: ${{ matrix.package }}
 
   publish-npm:
     needs: build
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        package:
-          - azure-devops
-          - kusto-server
-          - pdf-tools
+        package: *package-list
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
