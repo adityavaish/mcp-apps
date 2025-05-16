@@ -8,8 +8,8 @@ import * as util from "util";
 const execPromise = util.promisify(child_process.exec);
 
 // Tool to execute Git commands
-export const executeGitCommandTool = {
-    name: "execute-git-command",
+export const gitCommandTool = {
+    name: "git-command",
     description: `
         Executes a Git command in the context of an Azure DevOps repository.
         

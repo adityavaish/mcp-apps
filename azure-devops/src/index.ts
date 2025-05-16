@@ -8,7 +8,7 @@ import { listWorkItemsTool, createWorkItemTool, updateWorkItemTool } from "./too
 import { listRepositoriesTool, listPullRequestsTool, getRepositoryFileTool, createPullRequestTool } from "./tools/repositories";
 import { listProjectsTool } from "./tools/projects";
 import { 
-    executeGitCommandTool, 
+    gitCommandTool, 
     cloneRepositoryTool, 
     createBranchTool, 
     pushChangesTool, 
@@ -90,10 +90,10 @@ server.tool(
 
 // Register Git commands tools
 server.tool(
-    executeGitCommandTool.name,
-    executeGitCommandTool.description,
-    executeGitCommandTool.parameters,
-    executeGitCommandTool.handler
+    gitCommandTool.name,
+    gitCommandTool.description,
+    gitCommandTool.parameters,
+    gitCommandTool.handler
 );
 
 server.tool(
