@@ -1,0 +1,14 @@
+{
+    "servers": {
+        "my-mcp-server-9242d73a": {
+            "type": "stdio",
+            "command": "npm",
+            "args": [
+                "run",
+                "start",
+                "--prefix",
+                "${workspaceFolder}"
+            ]
+        }
+    }
+}
