@@ -1,14 +1,14 @@
 # API Tools MCP Server
 
-An [MCP (Model Context Protocol)](https://modelcontextprotocol.io/) server that provides tools for API integration and PDF document processing.
+An [MCP (Model Context Protocol)](https://modelcontextprotocol.io/) server that provides tools for API integration and web service interaction.
 
 ## Features
 
 - **API Integration**: Tools for making API calls to various services with authentication
 - **OpenAPI Support**: Parse OpenAPI specifications and generate call templates
-- **PDF Document Processing**: Securely processes PDF documents with various manipulation capabilities
-- **Content Extraction**: Extracts text, tables, images, and metadata from PDF documents
-- **PDF Transformation**: Provides tools for splitting, merging, and transforming PDF documents
+- **Authentication**: Multiple authentication methods including Bearer token and Basic auth
+- **Request Generation**: Generate API requests based on specifications
+- **Error Handling**: Comprehensive error handling with retries for transient failures
 
 ## Setup Instructions
 
@@ -48,7 +48,7 @@ An [MCP (Model Context Protocol)](https://modelcontextprotocol.io/) server that 
 
 6. To run tests:
    ```bash
-   npm run test:pdf
+   npm run test:api
    ```
 
 ## Using with GitHub Copilot in VS Code
@@ -72,114 +72,82 @@ An [MCP (Model Context Protocol)](https://modelcontextprotocol.io/) server that 
 
 6. Choose **Command (stdio)** as the tool type.
 
-7. Type the following command to install and run the PDF Tools MCP server:
+7. Type the following command to install and run the API Tools MCP server:
   ```bash
   npx @mcp-apps/api-tools-mcp-server
   ```
 
-8. Follow the prompts to select PDF files for processing.
-
-9. Once set up, Copilot will be able to assist with PDF document analysis and processing tasks.
+8. Once set up, Copilot will be able to assist with API integration and calls.
 
 ## Available Tools
 
-### PDF Extraction and Analysis
+### API Integration Tools
 
-- `extractText` - Extracts text content from PDF documents
+- `call_api` - Makes authenticated API calls to a specified endpoint
   - Parameters:
-    - `filePath`: Path to the PDF file
-    - `pageNumbers` (optional): Specific pages to extract text from
+    - `endpoint`: The base URL of the API endpoint
+    - `method`: HTTP method (GET, POST, PUT, PATCH, DELETE)
+    - `path` (optional): Path to append to the endpoint URL
+    - `queryParams` (optional): Query parameters to include
+    - `headers` (optional): Headers to include
+    - `body` (optional): Body data to include in the request
+    - `authType`: Authentication method ('bearer', 'basic', 'none')
+    - `authConfig` (optional): Authentication configuration
 
-- `extractTables` - Extracts tables from PDF documents
+- `call_api_advanced` - Extended version with more authentication options
+  - Additional parameters:
+    - `authType`: Includes 'msal' and 'azure-identity' options
+    - `timeout`: Request timeout in milliseconds
+    - `retryCount`: Number of retries for transient errors
+
+- `get_api_operations` - Retrieves information about available operations from an OpenAPI specification
   - Parameters:
-    - `filePath`: Path to the PDF file
-    - `pageNumbers` (optional): Specific pages to extract tables from
+    - `specUrl`: URL to the OpenAPI specification document
+    - `specJson`: Alternative to provide the spec directly as JSON
+    - `operationId` (optional): Filter for a specific operation
 
-- `getMetadata` - Gets detailed metadata for a specified PDF document
+- `generate_api_call` - Generates templates for API calls based on OpenAPI specifications
   - Parameters:
-    - `filePath`: Path to the PDF file
-
-- `analyzeDocument` - Performs various document analyses
-  - Parameters:
-    - `filePath`: Path to the PDF file
-    - `analysisType`: Type of analysis (`structure`, `content`, `images`, or `classification`)
-
-### PDF Editing
-
-- `edit_pdf` - Edits a PDF document using various operations
-  - Common Parameters:
-    - `sourceFilePath`: Path to the source PDF file
-    - `outputFilePath`: Path where the edited PDF should be saved
-    - `operation`: The editing operation to perform
-    - `params`: Operation-specific parameters
-
-  - Available Operations:
-    1. **addText**: Add text to a PDF page
-       - Parameters:
-         - `text`: Text to add
-         - `pageNumber`: Page to add text to (1-based)
-         - `x`, `y`: Coordinates for text placement
-         - `fontSize` (optional): Font size, default is 12
-         - `color` (optional): RGB color values between 0-1, default is black
-
-    2. **addPage**: Add a new blank page
-       - Parameters:
-         - `size` (optional): Page size (`A4`, `Letter`, or `Legal`), default is `A4`
-         - `afterPageIndex` (optional): Index after which to insert the page, default is at the end
-
-    3. **removePage**: Remove pages from the document
-       - Parameters:
-         - `pageIndices`: Array of page indices to remove (0-based)
-
-    4. **rotatePage**: Rotate pages in the document
-       - Parameters:
-         - `pageIndices`: Array of page indices to rotate (0-based)
-         - `rotation`: Rotation angle (90, 180, or 270 degrees)
-
-    5. **mergeDocuments**: Merge multiple PDFs into one
-       - Parameters:
-         - `filePaths`: Array of paths to PDF files to merge
-
-    6. **splitDocument**: Extract pages into a new document
-       - Parameters:
-         - `pageIndices`: Array of page indices to extract (0-based)
-         - `outputFilePath`: Path where the new document should be saved
+    - `specUrl`: URL to the OpenAPI specification document
+    - `operationId`: The operation to generate a template for
+    - `serverIndex` (optional): Index of the server to use from the spec
 
 ## Example Usage
 
-Here are examples of using the PDF Tools MCP Server tools with GitHub Copilot:
+Here are examples of using the API Tools MCP Server with GitHub Copilot:
 
-### Extract Text from a PDF
+### Making a Simple API Call
 ```
-Extract text from sample.pdf
-```
-
-### Get PDF Metadata
-```
-What's the metadata of my report.pdf file?
+Call the Weather API at https://api.weather.com/forecast with my API key abc123
 ```
 
-### Add Text to a PDF
+### Making an Authenticated API Call
 ```
-Add the text "CONFIDENTIAL" to the top of each page in document.pdf
-```
-
-### Merge Multiple PDFs
-```
-Merge chapter1.pdf, chapter2.pdf, and chapter3.pdf into a single document
+Make a POST request to https://api.example.com/data with bearer token authentication
 ```
 
-### Split a PDF
+### Working with OpenAPI Specifications
 ```
-Extract pages 5-10 from my-document.pdf into a new file
+Get the available operations from the Petstore API specification at https://petstore.swagger.io/v2/swagger.json
+```
+
+### Generating an API Call Template
+```
+Generate a template for the 'addPet' operation from the Petstore API
+```
+
+### Advanced Authentication
+```
+Call the Microsoft Graph API with MSAL authentication to retrieve my profile information
 ```
 
 ## Security Considerations
 
-- This server processes PDF documents safely with appropriate checks
-- Contains basic security measures to prevent destructive operations
-- Restricts access to system resources when processing documents
-- Consider additional security measures depending on your specific requirements
+- This server handles API keys and authentication tokens with appropriate security measures
+- All sensitive data is properly handled and not logged or exposed
+- Implements standard security practices for API communication
+- Authentication token refresh is managed securely
+- Consider additional security measures depending on your specific API integration requirements
 
 ## License
 
