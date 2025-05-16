@@ -1,0 +1,63 @@
+{
+  "name": "@mcp-apps/api-tools-mcp-server",
+  "version": "1.0.0",
+  "description": "MCP server for interacting with APIs and web services",
+  "main": "dist/index.js",
+  "type": "commonjs",
+  "bin": {
+    "api-tools-mcp-server": "./dist/index.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "prepare": "npm run build",
+    "start": "node dist/index.js",
+    "dev": "node --no-warnings --enable-source-maps dist/index.js",
+    "watch": "tsc -w",
+    "clean": "rimraf dist",
+    "rebuild": "npm run clean && npm run build",
+    "unpublish": "npm unpublish --force",
+    "setup": "ts-node setup.ts",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "test:api": "npm run build && ts-node test/test-api.ts",
+    "test:advanced-api": "npm run build && ts-node test/test-advanced-api.ts",
+    "debug": "npx @modelcontextprotocol/inspector node dist/index.js",
+    "token": "npx vsts-npm-auth -config .npmrc"
+  },
+  "dependencies": {
+    "@azure/identity": "^4.10.0",
+    "@azure/msal-node": "^2.16.2",
+    "@modelcontextprotocol/sdk": "^1.9.0",
+    "axios": "^1.9.0",
+    "dotenv": "^16.4.7",
+    "shx": "^0.4.0",
+    "vscode-mcp-server": "^0.2.0",
+    "zod": "^3.24.2"
+  },
+  "devDependencies": {
+    "@modelcontextprotocol/inspector": "^0.8.2",
+    "@types/node": "^22.14.0",
+    "rimraf": "^6.0.1",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.8.3"
+  },
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "api",
+    "api-integration",
+    "web-service",
+    "rest-api",
+    "openapi",
+    "authentication",
+    "query",
+    "analytics",
+    "data-analysis",
+    "copilot",
+    "ai-assistant"
+  ],
+  "author": "",
+  "license": "ISC",
+  "publishConfig": {
+    "access": "public"
+  }
+}
