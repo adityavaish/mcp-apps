@@ -1,0 +1,118 @@
+import express from "express";
+import open from "open";
+import { PublicClientApplication, Configuration, AuthorizationUrlRequest, AuthorizationCodeRequest } from "@azure/msal-node";
+
+export async function getAccessToken(clientId: string, tenantId: string, scopes: string[] = ['openid', 'profile', 'email']): Promise<string | null> {
+    const redirectUri = "http://localhost:3000"; // Must match a registered redirect URI
+    const config: Configuration = {
+      auth: {
+        clientId: clientId,
+        authority: `https://login.microsoftonline.com/${tenantId}`,
+      },
+    };
+
+    const pca = new PublicClientApplication(config);
+
+    const authCodeUrlParams: AuthorizationUrlRequest = {
+      scopes: scopes,
+      redirectUri: redirectUri,
+  };
+
+  return new Promise(async (resolve, reject) => {
+    const app = express();
+    const port = 3000;
+
+    const server = app.listen(port, async () => {
+      try {
+        const authUrl = await pca.getAuthCodeUrl(authCodeUrlParams);
+        console.log("Opening browser for login...");
+        await open(authUrl);
+      } catch (err) {
+        reject(err);
+      }
+    });
+
+    app.get("/", async (req, res) => {
+      const tokenRequest: AuthorizationCodeRequest = {
+        code: req.query.code as string,
+        scopes: ["openid", "profile", "email"],
+        redirectUri: redirectUri,
+      };
+
+      try {
+        const response = await pca.acquireTokenByCode(tokenRequest);
+        res.send("Authentication successful! You can close this window.");
+        server.close();
+        resolve(response.idToken || null);
+      } catch (error) {
+        console.error("Token acquisition failed:", error);
+        res.status(500).send("Authentication failed.");
+        server.close();
+        reject(error);
+      }
+    });
+  });
+}
+
+
+// import { PublicClientApplication, Configuration, AuthenticationResult, InteractiveRequest } from "@azure/msal-node";
+// import { InteractiveBrowserCredential, InteractiveBrowserCredentialInBrowserOptions, InteractiveBrowserCredentialNodeOptions, InteractiveCredentialOptions } from "@azure/identity";
+
+// let cachedToken: string | null = null;
+// let tokenExpiresAt: number = 0;
+
+// export async function getAccessToken(clientId: string, tenantId: string, scopes: string[] = ['openid', 'profile', 'email']): Promise<string> {
+//     const now = Date.now();
+//     if (cachedToken && tokenExpiresAt > now) {
+//         return cachedToken;
+//     }
+
+//     try {
+//         const options: InteractiveBrowserCredentialNodeOptions | InteractiveBrowserCredentialInBrowserOptions = {
+//             clientId: clientId,
+//             // tenantId: tenantId || "common",
+//             additionallyAllowedTenants: ["*"],
+//             loginStyle: "popup",
+//         };
+
+//         // const credential = new InteractiveBrowserCredential(options);
+
+//         // MSAL configuration
+//         const msalConfig: Configuration = {
+//             auth: {
+//                 clientId: clientId, // Replace with your app's client ID
+//                 authority: `https://login.microsoftonline.com/${tenantId || "common"}`, // or your tenant ID
+//                 // redirectUri: "http://localhost:3000", // Must match a registered redirect URI
+//             },
+//         };
+        
+//         const msalInstance = new PublicClientApplication(msalConfig);
+
+//         const interactiveRequest: InteractiveRequest = {
+//             openBrowser
+//         };
+
+//         const tokenResponse: AuthenticationResult = await msalInstance.acquireTokenInteractive(interactiveRequest);
+
+//         // const tokenResponse = await credential.getToken(
+//         //     scopes.join(" "), {
+//         //     tenantId: tenantId || "common",
+//         // });
+
+//         if (!tokenResponse || !tokenResponse.idToken) {
+//             throw new Error("Failed to acquire Azure DevOps token");
+//         }
+
+//         // Store the token in cache
+//         cachedToken = tokenResponse.idToken;
+
+//         // Set expiration time (expiresOn is in seconds from epoch)
+//         const expirationTime = tokenResponse.expiresOn?.getTime() || Date.now() + 3600 * 1000; // Default to 1 hour if not provided
+//         tokenExpiresAt = expirationTime - (5 * 60 * 1000); // Token lifetime minus 5 minute safety buffer
+
+//         return cachedToken;
+//     } catch (error) {
+//         console.error("Error acquiring token:", error);
+//         throw new Error("Failed to acquire Azure DevOps access token");
+//     }
+// }

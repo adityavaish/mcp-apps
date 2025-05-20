@@ -2,10 +2,7 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 
-import { apiCallTool as simpleApiCallTool } from "./tools/simpleApiCall";
-import { apiCallTool as advancedApiCallTool } from "./tools/api-call";
-import { getApiOperationsTool } from "./tools/apiSpecTool";
-import { generateApiCallTool } from "./tools/generateApiCallTool";
+import { apiCallTool } from "./tools/api-call";
 
 async function main() {
   try {
@@ -19,36 +16,13 @@ async function main() {
       },
     });
 
-    // Register API-related tools - simple version (default)
     server.tool(
-      simpleApiCallTool.name,
-      simpleApiCallTool.description,
-      simpleApiCallTool.parameters,
-      simpleApiCallTool.handler
+      apiCallTool.name,
+      apiCallTool.description,
+      apiCallTool.parameters,
+      apiCallTool.handler
     );
-    
-    // Register advanced API tool with more authentication options
-    server.tool(
-      "call_api_advanced",
-      advancedApiCallTool.description,
-      advancedApiCallTool.parameters,
-      advancedApiCallTool.handler
-    );
-    
-    server.tool(
-      getApiOperationsTool.name,
-      getApiOperationsTool.description,
-      getApiOperationsTool.parameters,
-      getApiOperationsTool.handler
-    );
-    
-    server.tool(
-      generateApiCallTool.name,
-      generateApiCallTool.description,
-      generateApiCallTool.parameters,
-      generateApiCallTool.handler
-    );
-    
+
     const transport = new StdioServerTransport();
     await server.connect(transport);
     console.error("API Tools MCP Server running on stdio");

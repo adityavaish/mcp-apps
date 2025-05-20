@@ -20,6 +20,7 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "test:api": "npm run build && ts-node test/test-api.ts",
     "test:advanced-api": "npm run build && ts-node test/test-advanced-api.ts",
+    "test:interactive": "npm run build && ts-node test/test-interactive-auth.ts",
     "debug": "npx @modelcontextprotocol/inspector node dist/index.js",
     "token": "npx vsts-npm-auth -config .npmrc"
   },
@@ -29,12 +30,15 @@
     "@modelcontextprotocol/sdk": "^1.9.0",
     "axios": "^1.9.0",
     "dotenv": "^16.4.7",
+    "express": "^5.1.0",
+    "open": "^10.1.2",
     "shx": "^0.4.0",
     "vscode-mcp-server": "^0.2.0",
     "zod": "^3.24.2"
   },
   "devDependencies": {
     "@modelcontextprotocol/inspector": "^0.8.2",
+    "@types/express": "^5.0.2",
     "@types/node": "^22.14.0",
     "rimraf": "^6.0.1",
     "ts-node": "^10.9.2",

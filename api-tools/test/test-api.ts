@@ -1,5 +1,5 @@
 // Simple test script for API Tools
-import { ApiService } from '../src/services/simpleApiService';
+import { ApiService } from '../src/services/api-service';
 
 // Test a public API
 async function testApiCall() {

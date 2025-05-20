@@ -1,5 +1,5 @@
 // Test script for the advanced ApiService with authentication support
-import { ApiService } from '../src/services/apiService';
+import { ApiService } from '../src/services/api-service';
 
 // Test a public API endpoint without authentication
 async function testPublicApi() {

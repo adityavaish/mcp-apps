@@ -91,7 +91,7 @@ An [MCP (Model Context Protocol)](https://modelcontextprotocol.io/) server that 
     - `queryParams` (optional): Query parameters to include
     - `headers` (optional): Headers to include
     - `body` (optional): Body data to include in the request
-    - `authType`: Authentication method ('bearer', 'basic', 'none')
+    - `authType`: Authentication method ('bearer', 'basic', 'interactive', 'none')
     - `authConfig` (optional): Authentication configuration
 
 - `call_api_advanced` - Extended version with more authentication options
@@ -139,6 +139,11 @@ Generate a template for the 'addPet' operation from the Petstore API
 ### Advanced Authentication
 ```
 Call the Microsoft Graph API with MSAL authentication to retrieve my profile information
+```
+
+### Interactive Browser Authentication
+```
+Log me in using device code authentication to call the Microsoft Graph API
 ```
 
 ## Security Considerations
