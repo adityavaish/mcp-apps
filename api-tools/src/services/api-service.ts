@@ -1,5 +1,4 @@
 import axios from 'axios';
-import { PublicClientApplication, Configuration, AuthorizationUrlRequest } from '@azure/msal-node';
 import { getAccessToken } from './token-manager';
 
 export interface ApiRequestConfig {
@@ -48,11 +47,15 @@ export class ApiService {
         const username = config.authConfig.username;
         const password = config.authConfig.password || '';
         const base64Auth = Buffer.from(`${username}:${password}`).toString('base64');
+
         headers['Authorization'] = `Basic ${base64Auth}`;
+
       } else if (config.authType === 'interactive') {
         try {
-          const token = await getAccessToken(config.authConfig?.clientId || '', config.authConfig?.tenantId || '', config.authConfig?.scopes);
+          const token = await getAccessToken(config.authConfig?.clientId, config.authConfig?.tenantId, config.authConfig?.scopes);
+
           headers['Authorization'] = `Bearer ${token}`;
+
         } catch (authError: any) {
           console.error('Interactive authentication error:', authError);
           return {
@@ -63,7 +66,6 @@ export class ApiService {
         }
       }
 
-      // Make the request
       const response = await axios({
         method: config.method,
         url,
