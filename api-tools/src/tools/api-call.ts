@@ -1,19 +1,47 @@
 import { z } from 'zod';
 import { ApiService } from '../services/api-service';
 
-export const apiCallTool = {
-  name: 'call_api',  description: `Makes an API call to a specified endpoint with optional authentication.
+export const apiCallTool = {  name: 'call_api',  description: `Makes an API call to a specified endpoint with optional authentication.
   
   This tool supports the following authentication methods:
   - Bearer token authentication
   - Basic authentication with username/password
   - Interactive device code authentication
+  - No authentication (public APIs)
   
-  Example usage:
-  - To call a public REST API: Call with endpoint, method and no auth
-  - To call an API with Bearer token: Include authType="bearer" and token in authConfig
-  - To call an API with Basic auth: Include authType="basic" with username/password in authConfig
-  - To use interactive device code auth: Include authType="interactive" with clientId and scopes in authConfig
+  ## Parameters:
+  - endpoint: [Required] The base URL of the API endpoint (e.g., https://api.example.com)
+  - method: [Required] HTTP method to use (GET, POST, PUT, PATCH, DELETE)
+  - path: [Optional] Path to append to the endpoint URL (e.g., 'v1/users')
+  - queryParams: [Optional] Query parameters as key-value pairs (e.g., {"page": "1", "limit": "10"})
+  - headers: [Optional] HTTP headers as key-value pairs (e.g., {"Content-Type": "application/json"})
+  - body: [Optional] Request body data for POST, PUT, PATCH requests
+  - authType: [Required] Authentication method: 'bearer', 'basic', 'interactive', or 'none'
+  - authConfig: [Required for auth] Configuration object with authentication details:
+    - token: Bearer token value (required for authType='bearer')
+    - username: Username (required for authType='basic')
+    - password: Password (optional for authType='basic')
+    - clientId: Client ID (required for authType='interactive')
+    - tenantId: Tenant ID (optional for authType='interactive', defaults to 'common')
+    - authority: Authority URL (optional for authType='interactive')
+    - scopes: Array of OAuth scopes (optional for authType='interactive')
+    - redirectUri: Redirect URI (optional for authType='interactive')
+  
+  ## Example usage:
+  - To call a public REST API:
+    call_api({endpoint: "https://jsonplaceholder.typicode.com", method: "GET", path: "posts/1", authType: "none"})
+  
+  - To call an API with Bearer token:
+    call_api({endpoint: "https://api.example.com", method: "GET", path: "users/me", authType: "bearer", authConfig: {token: "your-token-here"}})
+  
+  - To call an API with Basic auth:
+    call_api({endpoint: "https://api.example.com", method: "GET", path: "protected-resource", authType: "basic", authConfig: {username: "user", password: "pass"}})
+  
+  - To use interactive device code auth:
+    call_api({endpoint: "https://graph.microsoft.com", method: "GET", path: "v1.0/me", authType: "interactive", authConfig: {clientId: "your-client-id", scopes: ["User.Read"]}})
+  
+  - To POST data to an API:
+    call_api({endpoint: "https://api.example.com", method: "POST", path: "users", body: {"name": "John", "email": "john@example.com"}, headers: {"Content-Type": "application/json"}, authType: "none"})
   `,
   parameters: {
     endpoint: z.string().describe('The base URL of the API endpoint to call'),
@@ -51,7 +79,7 @@ export const apiCallTool = {
       clientId?: string;
       tenantId?: string;
       authority?: string;
-      scopes?: string[];
+      scopes?: string[] | undefined;
       redirectUri?: string;
     };
   }) => {
