@@ -4,6 +4,21 @@ This repository contains [MCP (Model Context Protocol)](https://modelcontextprot
 
 ## Available MCP Servers
 
+### API Tools MCP Server
+
+Provides powerful tools for API integration and web service interaction.
+
+**Features:**
+- API Integration with multiple authentication methods
+- Support for REST API calls to various services
+- Multiple authentication methods including Bearer token, Basic auth, and Interactive device code auth
+- Comprehensive error handling with retries for transient failures
+
+**Available Tools:**
+- `call_api` - Makes authenticated API calls to a specified endpoint with various authentication options
+- Support for common HTTP methods (GET, POST, PUT, PATCH, DELETE)
+- Handles headers, query parameters, request body, and authentication configurations
+
 ### Azure DevOps MCP Server
 
 Connects to Azure DevOps, exposing projects, repositories, and work items as resources.
@@ -87,6 +102,11 @@ Provides PDF processing capabilities, enabling AI assistants to extract and mani
 
 7. Type the appropriate command to install and run your desired MCP server:
 
+   **For API Tools:**
+   ```bash
+   npx @mcp-apps/api-tools-mcp-server
+   ```
+
    **For Azure DevOps:**
    ```bash
    npx @mcp-apps/azure-devops-mcp-server
@@ -112,6 +132,10 @@ Provides PDF processing capabilities, enabling AI assistants to extract and mani
 - Basic security measures prevent destructive operations.
 - Authentication uses Azure AD for secure access.
 - Consider additional security measures depending on your specific requirements.
+
+## Contributing
+
+We welcome contributions to the MCP Server Collection! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines and best practices on how to contribute to this project.
 
 ## License
 
