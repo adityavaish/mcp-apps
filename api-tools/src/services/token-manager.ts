@@ -6,7 +6,7 @@ dotenv.config();
 let cachedToken: string | null = null;
 let tokenExpiresAt: number = 0;
 
-export async function getAccessToken(clientId: string, tenantId: string, scopes: string[] = ["openid", "profile", "email"]): Promise<string> {
+export async function getAccessToken(clientId: string, tenantId: string, scopes: string[] | undefined): Promise<string> {
   const now = Date.now();
   if (cachedToken && tokenExpiresAt > now) {
     return cachedToken;
@@ -17,13 +17,11 @@ export async function getAccessToken(clientId: string, tenantId: string, scopes:
       {
         clientId: clientId,
         tenantId: tenantId || "common",
-        // additionallyAllowedTenants: [tenantId || "common"],
-        // loginStyle: "popup"
-        redirectUri: "http://localhost",
+        loginStyle: "popup"
       }
     );
 
-    const tokenResponse = await credential.getToken("https://graph.microsoft.com/.default");
+    const tokenResponse = await credential.getToken(scopes || [`${clientId}/.default`]);
 
     if (!tokenResponse || !tokenResponse.token) {
       throw new Error("Failed to acquire Azure DevOps token");

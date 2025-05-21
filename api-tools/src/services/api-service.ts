@@ -1,13 +1,6 @@
 import axios from 'axios';
 import { PublicClientApplication, Configuration, AuthorizationUrlRequest } from '@azure/msal-node';
-import * as http from 'http';
-import * as url from 'url';
 import { getAccessToken } from './token-manager';
-// Use dynamic import for the 'open' package
-const openBrowser = async (url: string) => {
-  const open = await import('open');
-  return open.default(url);
-};
 
 export interface ApiRequestConfig {
   endpoint: string;
@@ -25,7 +18,7 @@ export interface ApiRequestConfig {
     clientId?: string;
     authority?: string;
     tenantId?: string;
-    scopes?: string[];
+    scopes?: string[] | undefined;
     redirectUri?: string;
   };
 }
@@ -36,17 +29,14 @@ export interface ApiResponse<T = any> {
   data?: T;
   error?: string;
   headers?: Record<string, string>;
+  response?: any;
 }
 
 export class ApiService {
-  private static msalConfigs = new Map<string, PublicClientApplication>();
-
   static async callApi<T = any>(config: ApiRequestConfig): Promise<ApiResponse<T>> {
     try {
-      // Build the full URL
       const url = this.buildUrl(config.endpoint, config.path, config.queryParams);
 
-      // Prepare headers
       const headers: Record<string, string> = {
         ...config.headers || {},
       };
@@ -89,10 +79,11 @@ export class ApiService {
       };
     } catch (error: any) {
       console.error('Error making API call:', error);
+
       return {
         success: false,
         status: error.response?.status || 500,
-        error: error.message || 'Unknown error occurred',
+        error: error.response?.data?.message || error.message || 'Unknown error occurred',
       };
     }
   }
