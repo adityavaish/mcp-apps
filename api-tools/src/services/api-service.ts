@@ -85,7 +85,7 @@ export class ApiService {
       return {
         success: false,
         status: error.response?.status || 500,
-        error: error.response?.data?.message || error.message || 'Unknown error occurred',
+        error: error.response?.data?.detail || error.message || 'Unknown error occurred',
       };
     }
   }
