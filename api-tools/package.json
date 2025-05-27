@@ -21,10 +21,12 @@
     "test:api": "npm run build && ts-node test/test-api.ts",
     "test:advanced-api": "npm run build && ts-node test/test-advanced-api.ts",
     "test:interactive": "npm run build && ts-node test/test-interactive-auth.ts",
+    "test:openapi": "npm run build && ts-node test/test-openapi.ts",
     "debug": "npx @modelcontextprotocol/inspector node dist/index.js",
     "token": "npx vsts-npm-auth -config .npmrc"
   },
   "dependencies": {
+    "@apidevtools/swagger-parser": "^10.1.1",
     "@azure/identity": "^4.10.0",
     "@azure/msal-node": "^2.16.2",
     "@modelcontextprotocol/sdk": "^1.9.0",
@@ -33,12 +35,14 @@
     "express": "^5.1.0",
     "open": "^10.1.2",
     "shx": "^0.4.0",
+    "swagger-parser": "^10.0.3",
     "vscode-mcp-server": "^0.2.0"
   },
   "devDependencies": {
     "@modelcontextprotocol/inspector": "^0.8.2",
     "@types/express": "^5.0.2",
     "@types/node": "^22.14.0",
+    "@types/swagger-parser": "^4.0.3",
     "rimraf": "^6.0.1",
     "ts-node": "^10.9.2",
     "typescript": "^5.8.3",
@@ -52,6 +56,7 @@
     "web-service",
     "rest-api",
     "openapi",
+    "schema-inspection",
     "authentication",
     "query",
     "analytics",

@@ -5,9 +5,10 @@ An [MCP (Model Context Protocol)](https://modelcontextprotocol.io/) server that 
 ## Features
 
 - **API Integration**: Tools for making API calls to various services with authentication
-- **OpenAPI Support**: Parse OpenAPI specifications and generate call templates
-- **Authentication**: Multiple authentication methods including Bearer token and Basic auth
+- **OpenAPI Support**: Parse and inspect OpenAPI specifications
+- **Authentication**: Multiple authentication methods including Bearer token, Basic auth, and Interactive authentication
 - **Request Generation**: Generate API requests based on specifications
+- **Schema Inspection**: Fetch OpenAPI schemas, list endpoints, and explore API operations
 - **Error Handling**: Comprehensive error handling with retries for transient failures
 
 ## Setup Instructions
@@ -21,34 +22,41 @@ An [MCP (Model Context Protocol)](https://modelcontextprotocol.io/) server that 
 ### Local Development Setup
 
 1. Clone the repository:
+
    ```bash
    git clone https://github.com/your-repo/api-tools-mcp-server.git
    cd api-tools-mcp-server
    ```
 
 2. Install dependencies:
+
    ```bash
    npm install
    ```
 
 3. Build the project:
+
    ```bash
    npm run build
    ```
 
 4. Run the server:
+
    ```bash
    npm start
    ```
 
 5. For development with auto-reload:
+
    ```bash
    npm run watch
    ```
 
 6. To run tests:
+
    ```bash
    npm run test:api
+   npm run test:openapi
    ```
 
 ## Using with GitHub Copilot in VS Code
@@ -56,13 +64,15 @@ An [MCP (Model Context Protocol)](https://modelcontextprotocol.io/) server that 
 ### Installation with GitHub Copilot UI
 
 1. Ensure you have the GitHub Copilot extension installed in VS Code
-  - If not, open VS Code Extensions view (Ctrl+Shift+X)
-  - Search for "GitHub Copilot"
-  - Click "Install"
+
+- If not, open VS Code Extensions view (Ctrl+Shift+X)
+- Search for "GitHub Copilot"
+- Click "Install"
 
 2. Open VS Code and the GitHub Copilot Chat panel
-  - Use the keyboard shortcut (Ctrl+Shift+I) or
-  - Click on the Copilot Chat icon in the activity bar
+
+- Use the keyboard shortcut (Ctrl+Shift+I) or
+- Click on the Copilot Chat icon in the activity bar
 
 3. Select "Agent Mode" in the Copilot Chat panel.
 
@@ -73,6 +83,7 @@ An [MCP (Model Context Protocol)](https://modelcontextprotocol.io/) server that 
 6. Choose **Command (stdio)** as the tool type.
 
 7. Type the following command to install and run the API Tools MCP server:
+
   ```bash
   npx @mcp-apps/api-tools-mcp-server
   ```
@@ -100,48 +111,92 @@ An [MCP (Model Context Protocol)](https://modelcontextprotocol.io/) server that 
     - `timeout`: Request timeout in milliseconds
     - `retryCount`: Number of retries for transient errors
 
-- `get_api_operations` - Retrieves information about available operations from an OpenAPI specification
+- `fetch_openapi_schema` - Fetches and parses an OpenAPI schema from a URL
   - Parameters:
-    - `specUrl`: URL to the OpenAPI specification document
-    - `specJson`: Alternative to provide the spec directly as JSON
-    - `operationId` (optional): Filter for a specific operation
+    - `schemaUrl`: URL where the OpenAPI schema is published
+    - `authType` (optional): Authentication method if the schema requires auth
+    - `authConfig` (optional): Authentication configuration object
 
-- `generate_api_call` - Generates templates for API calls based on OpenAPI specifications
+- `get_openapi_endpoints` - Lists all available endpoints from an OpenAPI schema
   - Parameters:
-    - `specUrl`: URL to the OpenAPI specification document
-    - `operationId`: The operation to generate a template for
-    - `serverIndex` (optional): Index of the server to use from the spec
+    - `schemaUrl`: URL where the OpenAPI schema is published
+    - `authType` (optional): Authentication method if the schema requires auth
+    - `authConfig` (optional): Authentication configuration object
+
+- `get_openapi_operations` - Gets detailed information about operations for a specific endpoint
+  - Parameters:
+    - `schemaUrl`: URL where the OpenAPI schema is published
+    - `path`: The specific API path to get operations for (e.g., "/pets")
+    - `authType` (optional): Authentication method if the schema requires auth
+    - `authConfig` (optional): Authentication configuration object
+
+- `get_openapi_operation_details` - Gets comprehensive details about a specific operation (by operationId)
+  - Parameters:
+    - `schemaUrl`: URL where the OpenAPI schema is published
+    - `operationId`: The operation ID to retrieve details for (e.g., "getPetById")
+    - `authType` (optional): Authentication method if the schema requires auth
+    - `authConfig` (optional): Authentication configuration object
 
 ## Example Usage
 
 Here are examples of using the API Tools MCP Server with GitHub Copilot:
 
 ### Making a Simple API Call
+
 ```
 Call the Weather API at https://api.weather.com/forecast with my API key abc123
 ```
 
 ### Making an Authenticated API Call
+
 ```
 Make a POST request to https://api.example.com/data with bearer token authentication
 ```
 
 ### Working with OpenAPI Specifications
-```
+
+```text
 Get the available operations from the Petstore API specification at https://petstore.swagger.io/v2/swagger.json
 ```
 
-### Generating an API Call Template
+### Fetching an OpenAPI Schema
+
+```text
+Fetch the complete OpenAPI schema from https://petstore.swagger.io/v2/swagger.json
 ```
+
+### Listing OpenAPI Endpoints
+
+```text
+List all the endpoints available in the Petstore API at https://petstore.swagger.io/v2/swagger.json
+```
+
+### Getting Endpoint Operations
+
+```text
+Show me all the operations available for the /pet endpoint in the Petstore API
+```
+
+### Getting Operation Details by ID
+
+```text
+Get details for the getPetById operation in the Petstore API and show me a sample request
+```
+
+### Generating an API Call Template
+
+```text
 Generate a template for the 'addPet' operation from the Petstore API
 ```
 
 ### Advanced Authentication
+
 ```
 Call the Microsoft Graph API with MSAL authentication to retrieve my profile information
 ```
 
 ### Interactive Browser Authentication
+
 ```
 Log me in using device code authentication to call the Microsoft Graph API
 ```

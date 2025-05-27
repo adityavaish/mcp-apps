@@ -3,6 +3,10 @@ import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 
 import { apiCallTool } from "./tools/api-call";
+import { fetchOpenApiSchemaTool } from "./tools/fetch-openapi-schema";
+import { getOpenApiEndpointsTool } from "./tools/get-openapi-endpoints";
+import { getOpenApiOperationsTool } from "./tools/get-openapi-operations";
+import { getOpenApiOperationDetailsTool } from "./tools/get-openapi-operation-details";
 
 async function main() {
   try {
@@ -16,11 +20,38 @@ async function main() {
       },
     });
 
+    // Register the API call tool
     server.tool(
       apiCallTool.name,
       apiCallTool.description,
       apiCallTool.parameters,
       apiCallTool.handler
+    );    // Register OpenAPI tools
+    server.tool(
+      fetchOpenApiSchemaTool.name,
+      fetchOpenApiSchemaTool.description,
+      fetchOpenApiSchemaTool.parameters,
+      fetchOpenApiSchemaTool.handler
+    );
+
+    server.tool(
+      getOpenApiEndpointsTool.name,
+      getOpenApiEndpointsTool.description,
+      getOpenApiEndpointsTool.parameters,
+      getOpenApiEndpointsTool.handler
+    );
+    server.tool(
+      getOpenApiOperationsTool.name,
+      getOpenApiOperationsTool.description,
+      getOpenApiOperationsTool.parameters,
+      getOpenApiOperationsTool.handler
+    );
+
+    server.tool(
+      getOpenApiOperationDetailsTool.name,
+      getOpenApiOperationDetailsTool.description,
+      getOpenApiOperationDetailsTool.parameters,
+      getOpenApiOperationDetailsTool.handler
     );
 
     const transport = new StdioServerTransport();
