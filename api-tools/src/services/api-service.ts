@@ -37,6 +37,7 @@ export class ApiService {
       const url = this.buildUrl(config.endpoint, config.path, config.queryParams);
 
       const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
         ...config.headers || {},
       };
 
