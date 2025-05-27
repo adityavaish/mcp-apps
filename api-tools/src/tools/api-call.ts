@@ -82,8 +82,7 @@ export const apiCallTool = {  name: 'call_api',  description: `Makes an API call
       scopes?: string[] | undefined;
       redirectUri?: string;
     };
-  }) => {
-    try {
+  }) => {    try {
       const response = await ApiService.callApi({
         endpoint,
         method,
@@ -95,10 +94,19 @@ export const apiCallTool = {  name: 'call_api',  description: `Makes an API call
         authConfig
       });
       
+      // Create a safe-to-stringify copy of the response without circular references
+      const safeResponse = {
+        success: response.success,
+        status: response.status,
+        data: response.data,
+        error: response.error,
+        headers: response.headers
+      };
+      
       return {
         content: [{
           type: 'text',
-          text: JSON.stringify(response, null, 2)
+          text: JSON.stringify(safeResponse, null, 2)
         } as const]
       };
     } catch (error: any) {

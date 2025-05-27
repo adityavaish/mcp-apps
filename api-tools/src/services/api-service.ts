@@ -64,7 +64,9 @@ export class ApiService {
             error: `Authentication error: ${authError.message || 'Unknown authentication error'}`
           };
         }
-      }      const response = await axios({
+      }
+
+      const response = await axios({
         method: config.method,
         url,
         headers,
@@ -91,13 +93,14 @@ export class ApiService {
         status: response.status,
         data: response.data,
         headers: response.headers as Record<string, string>,
-      };    } catch (error: any) {
+      };
+    } catch (error: any) {
       // Log useful debugging information      console.error('Error making API call:', error);
       if (error.response) {
         // The request was made and the server responded with a status code
         // that falls out of the range of 2xx
         console.error('Response status:', error.response.status);
-        
+
         // Only log response data if it's not huge
         if (typeof error.response.data === 'string' && error.response.data.length < 1000) {
           console.error('Response data:', error.response.data);
