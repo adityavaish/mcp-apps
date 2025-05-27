@@ -9,9 +9,8 @@ export const getOpenApiOperationsTool = {
   This tool retrieves comprehensive details about all HTTP methods (operations) available for
   a specific endpoint path in an OpenAPI schema, including parameters, request bodies,
   responses and other metadata.
-  
-  ## Parameters:
-  - schemaUrl: [Required] URL where the OpenAPI schema is published
+    ## Parameters:
+  - schemaUrl: [Required] URL where the OpenAPI schema is published or the API base URL (will auto-discover the schema)
   - path: [Required] The specific API path to get operations for (e.g., "/pets" or "/users/{id}")
   - authType: [Optional] Authentication method if the schema requires auth: 'bearer', 'basic', 'interactive', or 'none'
   - authConfig: [Optional] Authentication configuration object (required if authType is not 'none')

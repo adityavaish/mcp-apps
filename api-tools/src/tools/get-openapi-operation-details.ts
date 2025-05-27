@@ -9,9 +9,8 @@ export const getOpenApiOperationDetailsTool = {
   
   This tool extracts detailed information about a specific API operation identified by its operationId,
   including parameters, request body schema, response schemas, and examples.
-  
-  ## Parameters:
-  - schemaUrl: [Required] URL where the OpenAPI schema is published
+    ## Parameters:
+  - schemaUrl: [Required] URL where the OpenAPI schema is published or the API base URL (will auto-discover the schema)
   - operationId: [Required] The operation ID to retrieve details for (e.g., "getPetById", "createUser")
   - authType: [Optional] Authentication method if the schema requires auth: 'bearer', 'basic', 'interactive', or 'none'
   - authConfig: [Optional] Authentication configuration object (required if authType is not 'none')

@@ -64,13 +64,26 @@ export class ApiService {
             error: `Authentication error: ${authError.message || 'Unknown authentication error'}`
           };
         }
-      }
-
-      const response = await axios({
+      }      const response = await axios({
         method: config.method,
         url,
         headers,
-        data: config.body
+        data: config.body,
+        // Ensure response type is set to handle both JSON and non-JSON responses
+        responseType: 'json',
+        // Don't automatically transform non-JSON responses to prevent parsing errors
+        transformResponse: [(data) => {
+          if (typeof data === 'string') {
+            try {
+              return JSON.parse(data);
+            } catch (e) {
+              // If we can't parse as JSON, return the raw data
+              console.warn(`Response from ${url} is not valid JSON`);
+              return data;
+            }
+          }
+          return data;
+        }]
       });
 
       return {
@@ -78,14 +91,32 @@ export class ApiService {
         status: response.status,
         data: response.data,
         headers: response.headers as Record<string, string>,
-      };
-    } catch (error: any) {
-      console.error('Error making API call:', error);
+      };    } catch (error: any) {
+      // Log useful debugging information      console.error('Error making API call:', error);
+      if (error.response) {
+        // The request was made and the server responded with a status code
+        // that falls out of the range of 2xx
+        console.error('Response status:', error.response.status);
+        
+        // Only log response data if it's not huge
+        if (typeof error.response.data === 'string' && error.response.data.length < 1000) {
+          console.error('Response data:', error.response.data);
+        } else if (typeof error.response.data === 'object') {
+          console.error('Response data:', JSON.stringify(error.response.data).substring(0, 1000) + '...');
+        }
+      } else if (error.request) {
+        // The request was made but no response was received
+        console.error('Request was made but no response was received');
+      } else {
+        // Something happened in setting up the request that triggered an Error
+        console.error('Error setting up request:', error.message);
+      }
 
       return {
         success: false,
         status: error.response?.status || 500,
         error: error.response?.data?.detail || error.message || 'Unknown error occurred',
+        response: error.response, // Include the full response for debugging
       };
     }
   }

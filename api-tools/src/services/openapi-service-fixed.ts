@@ -32,9 +32,9 @@ interface ParsedSchema {
 export class OpenApiService {
     private static cache: Record<string, {schema: ParsedSchema, timestamp: number}> = {};
     private static CACHE_TTL_MS = 3600000; // 1 hour cache TTL
-      // Default popular OpenAPI schema URLs to try if the provided URL doesn't contain schema
+    
+    // Default popular OpenAPI schema URLs to try if the provided URL doesn't contain schema
     private static defaultSchemaEndpoints = [
-        '/v2/swagger.json',        // Swagger Petstore uses this path
         '/swagger.json',
         '/api-docs.json',
         '/openapi.json',
@@ -77,39 +77,25 @@ export class OpenApiService {
         
         return false;
     }
-      /**
+    
+    /**
      * Try to find a valid schema by appending common schema paths to the base URL
      */
     private static async tryDefaultSchemaEndpoints(baseUrl: string, authType?: 'bearer' | 'basic' | 'interactive' | 'none', authConfig?: any): Promise<ParsedSchema> {
         // Remove trailing slash if present
         const normalizedBaseUrl = baseUrl.endsWith('/') ? baseUrl.slice(0, -1) : baseUrl;
         
-        // If URL path looks like a directory (not ending in .json or containing a file extension),
-        // we should try looking for schemas both in this directory and the parent directory
-        const urlEndsWithDirectory = !normalizedBaseUrl.endsWith('.json') && 
-                                    !normalizedBaseUrl.split('/').pop()?.includes('.');
-        
-        // Create an array of base URLs to try
-        const baseUrls = [normalizedBaseUrl];
-        
-        // If it looks like a directory path, also try the parent directory
-        if (urlEndsWithDirectory) {
-            const parentUrl = normalizedBaseUrl.substring(0, normalizedBaseUrl.lastIndexOf('/'));
-            if (parentUrl && parentUrl.startsWith('http')) {
-                baseUrls.push(parentUrl);
-            }
-        }
-          const attemptedUrls: string[] = [];
+        const attemptedUrls: string[] = [];
         const errors: Record<string, string> = {};
         
-        // Try each base URL with each common schema endpoint path
-        for (const baseUrl of baseUrls) {
-            for (const endpoint of this.defaultSchemaEndpoints) {
-                try {
-                    const schemaUrl = `${baseUrl}${endpoint}`;
-                    console.log(`Auto-discovery: Trying schema URL: ${schemaUrl}`);
-                    attemptedUrls.push(schemaUrl);
-                  const response = await ApiService.callApi({
+        // Try each common schema endpoint path
+        for (const endpoint of this.defaultSchemaEndpoints) {
+            try {
+                const schemaUrl = `${normalizedBaseUrl}${endpoint}`;
+                console.log(`Auto-discovery: Trying schema URL: ${schemaUrl}`);
+                attemptedUrls.push(schemaUrl);
+                
+                const response = await ApiService.callApi({
                     endpoint: schemaUrl,
                     method: 'GET',
                     authType,
@@ -117,49 +103,38 @@ export class OpenApiService {
                 });
                 
                 if (response.success) {
-                    // First check if response.data is valid object/JSON
-                    if (response.data && typeof response.data === 'object') {
-                        if (this.isValidOpenApiSchema(response.data)) {
-                            console.log(`Auto-discovery: Valid OpenAPI schema found at: ${schemaUrl}`);
-                            
-                            try {
-                                const parsedSchema = await SwaggerParser.dereference(response.data);
-                                return await this.parseSchema(parsedSchema);
-                            } catch (parseError: any) {
-                                console.log(`Auto-discovery: Using bundled parsing due to possible circular references at ${schemaUrl}: ${parseError.message}`);
-                                // Fall back to bundled parsing
-                                const bundled = await SwaggerParser.bundle(response.data);
-                                return await this.parseSchema(bundled);
-                            }
-                        } else {
-                            errors[schemaUrl] = 'Response received but not a valid OpenAPI schema';
+                    if (this.isValidOpenApiSchema(response.data)) {
+                        console.log(`Auto-discovery: Valid OpenAPI schema found at: ${schemaUrl}`);
+                        
+                        try {
+                            const parsedSchema = await SwaggerParser.dereference(response.data);
+                            return await this.parseSchema(parsedSchema);
+                        } catch (parseError: any) {
+                            console.log(`Auto-discovery: Using bundled parsing due to possible circular references at ${schemaUrl}: ${parseError.message}`);
+                            // Fall back to bundled parsing
+                            const bundled = await SwaggerParser.bundle(response.data);
+                            return await this.parseSchema(bundled);
                         }
                     } else {
-                        // Handle non-JSON responses
-                        errors[schemaUrl] = 'Response received but not in valid JSON format';
+                        errors[schemaUrl] = 'Response received but not a valid OpenAPI schema';
                     }
                 } else {
-                    errors[schemaUrl] = `HTTP ${response.status}: ${response.error || 'Unknown error'}`;                }
-                } catch (error: any) {
-                    // Log error but continue trying other endpoints
-                    errors[`${baseUrl}${endpoint}`] = error.message || 'Unknown error';
-                    continue;
+                    errors[schemaUrl] = `HTTP ${response.status}: ${response.error || 'Unknown error'}`;
                 }
+            } catch (error: any) {
+                // Log error but continue trying other endpoints
+                errors[`${normalizedBaseUrl}${endpoint}`] = error.message || 'Unknown error';
+                continue;
             }
         }
         
         // If we get here, no valid schema was found at any of the default locations
         console.error('Auto-discovery failed. Attempted URLs:', attemptedUrls);
         console.error('Auto-discovery errors:', JSON.stringify(errors, null, 2));
-          // Build a more helpful error message
+        
+        // Build a more helpful error message
         let errorMsg = `No valid OpenAPI schema found at ${baseUrl} or at any standard schema paths.`;
-        // Display the attempted paths in a more readable format - just show the path parts
-        const pathsAttempted = attemptedUrls.map(url => {
-            // Extract just the path part after the domain
-            const urlObj = new URL(url);
-            return urlObj.pathname;
-        });
-        errorMsg += `\nTried the following paths: ${pathsAttempted.join(', ')}`;
+        errorMsg += `\nTried the following paths: ${attemptedUrls.map(url => url.replace(normalizedBaseUrl, '')).join(', ')}`;
         throw new Error(errorMsg);
     }
 
@@ -227,7 +202,8 @@ export class OpenApiService {
                 };
                 
                 return result;
-            }        } catch (error: any) {
+            }
+        } catch (error: any) {
             // If the direct fetch fails, try the default endpoints before giving up
             try {
                 console.log(`Failed to fetch from ${url} directly, trying auto-discovery instead`);
@@ -242,8 +218,7 @@ export class OpenApiService {
                 return result;
             } catch (fallbackError: any) {
                 console.error('Error fetching OpenAPI schema:', error);
-                console.error('Auto-discovery fallback error:', fallbackError);
-                throw new Error(`Failed to fetch or parse OpenAPI schema: ${error.message || 'Unknown error'}. Auto-discovery also failed: ${fallbackError.message || 'Unknown error'}`);
+                throw new Error(`Failed to fetch or parse OpenAPI schema: ${error.message || 'Unknown error'}`);
             }
         }
     }

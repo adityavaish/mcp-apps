@@ -2,10 +2,23 @@
 
 An [MCP (Model Context Protocol)](https://modelcontextprotocol.io/) server that provides tools for API integration and web service interaction.
 
-## Features
+## Fe### Getting OpenAPI Endpoints
+
+```text
+List all the endpoints available in the Petstore API at https://petstore.swagger.io/v2/swagger.json
+```
+
+### Using OpenAPI Auto-Discovery
+
+```text
+Get the OpenAPI schema for the Petstore API at https://petstore.swagger.io
+```
+
+This example uses auto-discovery to find and retrieve the schema without needing the exact path.s
 
 - **API Integration**: Tools for making API calls to various services with authentication
 - **OpenAPI Support**: Parse and inspect OpenAPI specifications
+- **OpenAPI Auto-Discovery**: Automatically locate OpenAPI schemas even when only given a base API URL
 - **Authentication**: Multiple authentication methods including Bearer token, Basic auth, and Interactive authentication
 - **Request Generation**: Generate API requests based on specifications
 - **Schema Inspection**: Fetch OpenAPI schemas, list endpoints, and explore API operations
@@ -113,9 +126,15 @@ An [MCP (Model Context Protocol)](https://modelcontextprotocol.io/) server that 
 
 - `fetch_openapi_schema` - Fetches and parses an OpenAPI schema from a URL
   - Parameters:
-    - `schemaUrl`: URL where the OpenAPI schema is published
+    - `schemaUrl`: URL where the OpenAPI schema is published or API base URL (auto-discovery enabled)
     - `authType` (optional): Authentication method if the schema requires auth
     - `authConfig` (optional): Authentication configuration object
+  
+  **Auto-Discovery Feature**:
+  
+  If the exact URL doesn't contain a valid OpenAPI schema, the tool will automatically try common schema endpoints (like "/swagger.json", "/v2/swagger.json", "/openapi.json", "/api-docs.json") to locate the schema. This enables you to just provide the base URL of an API and let the tool find the schema for you.
+  
+  See [OpenAPI Auto-Discovery Documentation](docs/openapi-autodiscovery.md) for details.
 
 - `get_openapi_endpoints` - Lists all available endpoints from an OpenAPI schema
   - Parameters:

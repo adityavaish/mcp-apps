@@ -8,9 +8,8 @@ export const getOpenApiEndpointsTool = {
   
   This tool extracts and returns all paths/endpoints defined in an OpenAPI schema,
   grouped by path with their associated HTTP methods.
-  
-  ## Parameters:
-  - schemaUrl: [Required] URL where the OpenAPI schema is published
+    ## Parameters:
+  - schemaUrl: [Required] URL where the OpenAPI schema is published or the API base URL (will auto-discover the schema)
   - authType: [Optional] Authentication method if the schema requires auth: 'bearer', 'basic', 'interactive', or 'none'
   - authConfig: [Optional] Authentication configuration object (required if authType is not 'none')
     - token: Bearer token (required for authType='bearer')
