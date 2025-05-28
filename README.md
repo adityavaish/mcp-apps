@@ -13,17 +13,24 @@ Provides powerful tools for API integration and web service interaction.
 - Support for REST API calls to various services
 - Multiple authentication methods including Bearer token, Basic auth, and Interactive device code auth
 - Comprehensive error handling with retries for transient failures
+- OpenAPI schema discovery and integration
 
 **Available Tools:**
+
 - `call_api` - Makes authenticated API calls to a specified endpoint with various authentication options
-- Support for common HTTP methods (GET, POST, PUT, PATCH, DELETE)
-- Handles headers, query parameters, request body, and authentication configurations
+  - Support for common HTTP methods (GET, POST, PUT, PATCH, DELETE)
+  - Handles headers, query parameters, request body, and authentication configurations
+- `fetch_openapi_schema` - Fetches and parses an OpenAPI schema from a URL with auto-discovery capabilities
+- `get_openapi_endpoints` - Lists all available endpoints from an OpenAPI schema with their HTTP methods
+- `get_openapi_operations` - Gets detailed information about operations for a specific endpoint path
+- `get_openapi_operation_details` - Gets comprehensive details about a specific operation by its operationId
 
 ### Azure DevOps MCP Server
 
 Connects to Azure DevOps, exposing projects, repositories, and work items as resources.
 
 **Features:**
+
 - Connection to Azure DevOps using browser-based authentication
 - Project resources (projects, repositories, work items)
 - Tools for querying and working with work items
@@ -31,6 +38,7 @@ Connects to Azure DevOps, exposing projects, repositories, and work items as res
 - Project management tools
 
 **Available Tools:**
+
 - `getProjects` - Lists all available projects in your Azure DevOps organization
 - `getRepositories` - Gets repositories for a specified project
 - `getWorkItems` - Queries work items based on filters and criteria
@@ -42,6 +50,7 @@ Connects to Azure DevOps, exposing projects, repositories, and work items as res
 Connects to Azure Data Explorer (Kusto) database, exposing table schemas and providing data analysis tools.
 
 **Features:**
+
 - Connection to Kusto Database using service principal or managed identity authentication
 - Schema resources (table schemas and sample data)
 - KQL Query tools for running read-only queries
@@ -49,6 +58,7 @@ Connects to Azure Data Explorer (Kusto) database, exposing table schemas and pro
 - Analysis prompts and templates
 
 **Available Tools:**
+
 - `executeQuery` - Executes a read-only KQL query against your database
 - `getTableInfo` - Gets detailed schema and sample data for a specified table
 - `findTables` - Finds tables that match a specified name pattern
@@ -59,12 +69,14 @@ Connects to Azure Data Explorer (Kusto) database, exposing table schemas and pro
 Provides PDF processing capabilities, enabling AI assistants to extract and manipulate PDF document content.
 
 **Features:**
+
 - Text extraction from PDF documents
 - Form filling capabilities for PDF forms
 - PDF form element discovery and manipulation
 - Support for both local and remote PDF files
 
 **Available Tools:**
+
 - `extractText` - Extracts text content from PDF documents with page information
 - `fillPdfForm` - Fills in form fields in PDF documents (text fields, checkboxes, radio buttons)
 - `getPdfFormElements` - Identifies and lists all form elements in a PDF document
@@ -103,21 +115,25 @@ Provides PDF processing capabilities, enabling AI assistants to extract and mani
 7. Type the appropriate command to install and run your desired MCP server:
 
    **For API Tools:**
+
    ```bash
    npx @mcp-apps/api-tools-mcp-server
    ```
 
    **For Azure DevOps:**
+
    ```bash
    npx @mcp-apps/azure-devops-mcp-server
    ```
 
    **For Kusto:**
+
    ```bash
    npx @mcp-apps/kusto-mcp-server
    ```
-   
+
    **For PDF Tools:**
+
    ```bash
    npx @mcp-apps/pdf-tools-mcp-server
    ```
