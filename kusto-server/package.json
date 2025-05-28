@@ -17,7 +17,7 @@
     "rebuild": "npm run clean && npm run build",
     "unpublish": "npm unpublish --force",
     "setup": "ts-node setup.ts",
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "vitest run",
     "debug": "npx @modelcontextprotocol/inspector node dist/index.js",
     "token": "npx vsts-npm-auth -config .npmrc"
   },
@@ -35,7 +35,8 @@
     "@types/node": "^22.14.0",
     "rimraf": "^6.0.1",
     "ts-node": "^10.9.2",
-    "typescript": "^5.8.3"
+    "typescript": "^5.8.3",
+    "vitest": "^3.1.4"
   },
   "keywords": [
     "mcp",
