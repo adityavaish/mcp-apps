@@ -24,7 +24,7 @@ export const executeQueryTool = {
     query: string;
     maxRows?: number;
   }) => {
-    // Check for forbidden administrative commands
+    // Define control command patterns
     const controlCommandPatterns = [
       /alter\s+table/i,
       /create\s+table/i,
@@ -34,21 +34,27 @@ export const executeQueryTool = {
       /policy/i,
       /purge/i,
       /ingestion/i,
-      /database/i,
-      /cluster/i,
       /management/i,
-      /\|\s*render/i,
-      /let\s+\w+\s*=/i
+      /\|\s*render/i
     ];
 
+    // Check for forbidden administrative commands
     for (const pattern of controlCommandPatterns) {
       if (pattern.test(query)) {
+        // Generate prohibited commands list from the patterns
+        const prohibitedCommands = controlCommandPatterns
+          .map(p => `${p}`)
+          .join(',\n');
+
         return {
           content: [
             {
               type: "text" as const,
               text: `Error: The query contains forbidden administrative commands or syntax.
                 Please use only Kusto query language (KQL) operations.
+
+                Prohibited commands patterns include: \n${prohibitedCommands}
+
                 Note: For listing tables, use the \`list_tables\` tool.
                 Note: For getting table schema, use the \`get_table_schema\` tool.`
             }
