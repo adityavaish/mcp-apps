@@ -5,8 +5,44 @@ import * as url from 'url';
 import * as pdfjsLib from 'pdfjs-dist/legacy/build/pdf.mjs';
 import { DocumentInitParameters } from 'pdfjs-dist/types/src/display/api';
 
-// Set the worker source path
-pdfjsLib.GlobalWorkerOptions.workerSrc = url.pathToFileURL(path.join(__dirname, '../../node_modules/pdfjs-dist/legacy/build/pdf.worker.mjs')).toString();
+// Set the worker source path in a way that works with both local and npx execution
+// Try multiple approaches to ensure worker loading works in different environments
+try {
+  // Check if running from node_modules (like in npx scenario)
+  const isNodeModules = __dirname.includes('node_modules');
+
+  if (isNodeModules) {
+    // When running from node_modules, use CDN (recommended approach for npx)
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@5.2.133/build/pdf.worker.min.js';
+  } else {
+    // For local development or installed packages, try to find the worker file
+    const possibleWorkerPaths = [
+      // Local path relative to current file
+      path.join(__dirname, '../../node_modules/pdfjs-dist/legacy/build/pdf.worker.mjs'),
+      // Alternative path structure
+      path.join(__dirname, '../../node_modules/pdfjs-dist/build/pdf.worker.js'),
+      // Global installation path
+      path.join(process.env.npm_config_global || '/usr/local/lib', 'node_modules/pdfjs-dist/legacy/build/pdf.worker.mjs')
+    ];
+
+    // Try each path until we find one that exists
+    for (const workerPath of possibleWorkerPaths) {
+      if (fs.existsSync(workerPath)) {
+        pdfjsLib.GlobalWorkerOptions.workerSrc = url.pathToFileURL(workerPath).toString();
+        break;
+      }
+    }
+
+    // Fallback to CDN if no local file found
+    if (!pdfjsLib.GlobalWorkerOptions.workerSrc) {
+      pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@5.2.133/build/pdf.worker.min.js';
+    }
+  }
+} catch (e) {
+  // Last resort fallback to CDN
+  console.warn('Error setting up PDF.js worker, falling back to CDN:', e);
+  pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@5.2.133/build/pdf.worker.min.js';
+}
 
 /**
  * Converts a file URL to a local file path
@@ -69,13 +105,13 @@ export async function extractTextFromPages(pdfDocument: any, pageNumbers?: numbe
       if (xfa && typeof xfa === 'object') {
         // Extract XFA text content
         const xfaTextContent: string[] = [];
-        
+
         const flattenXfaFields = (field: any): void => {
           if (!field) return;
-          
+
           // For direct value or text content
           let textContent = '';
-          
+
           if (typeof field === 'string') {
             textContent = field;
           } else if (field.value) {
@@ -83,7 +119,7 @@ export async function extractTextFromPages(pdfDocument: any, pageNumbers?: numbe
           } else if (field.attributes) {
             textContent = field.attributes.title || field.attributes.value || field.attributes.textContent || '';
           }
-          
+
           if (field.name === 'textarea' || field.name === 'div') {
             textContent += '\n';
           }
@@ -99,10 +135,10 @@ export async function extractTextFromPages(pdfDocument: any, pageNumbers?: numbe
             }
           }
         };
-        
+
         // Process the root XFA object and its children
         flattenXfaFields(xfa);
-        
+
         if (xfaTextContent.length > 0) {
           // Append XFA content to the text content
           textItems += ' ' + xfaTextContent.join(' ');
@@ -184,20 +220,20 @@ export class PDFService {  /**
         const page = await pdfDocument.getPage(pageNum);
         const textContent = await page.getTextContent();
         let textItems = textContent.items.map((item: any) => item.str).join(' ');
-        
+
         // Extract XFA text content if available
         try {
           const xfa: any = await page.getXfa();
           if (xfa && typeof xfa === 'object') {
             // Extract XFA text content
             const xfaTextContent: string[] = [];
-            
+
             const flattenXfaFields = (field: any): void => {
               if (!field) return;
-              
+
               // For direct value or text content
               let textContent = '';
-              
+
               if (typeof field === 'string') {
                 textContent = field;
               } else if (field.value) {
@@ -205,15 +241,15 @@ export class PDFService {  /**
               } else if (field.attributes) {
                 textContent = field.attributes.title || field.attributes.value || field.attributes.textContent || '';
               }
-              
+
               if (field.name === 'textarea' || field.name === 'div') {
                 textContent += '\n';
               }
-  
+
               if (textContent && textContent.trim()) {
                 xfaTextContent.push(textContent.trim());
               }
-  
+
               // Process children if available
               if (field.children && Array.isArray(field.children)) {
                 for (const child of field.children) {
@@ -221,10 +257,10 @@ export class PDFService {  /**
                 }
               }
             };
-            
+
             // Process the root XFA object and its children
             flattenXfaFields(xfa);
-            
+
             if (xfaTextContent.length > 0) {
               // Append XFA content to the text content
               textItems += ' ' + xfaTextContent.join(' ');
