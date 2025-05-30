@@ -5,44 +5,8 @@ import * as url from 'url';
 import * as pdfjsLib from 'pdfjs-dist/legacy/build/pdf.mjs';
 import { DocumentInitParameters } from 'pdfjs-dist/types/src/display/api';
 
-// Set the worker source path in a way that works with both local and npx execution
-// Try multiple approaches to ensure worker loading works in different environments
-try {
-  // Check if running from node_modules (like in npx scenario)
-  const isNodeModules = __dirname.includes('node_modules');
-
-  if (isNodeModules) {
-    // When running from node_modules, use CDN (recommended approach for npx)
-    pdfjsLib.GlobalWorkerOptions.workerSrc = '//cdn.jsdelivr.net/npm/pdfjs-dist@5.2.133/build/pdf.worker.min.js';
-  } else {
-    // For local development or installed packages, try to find the worker file
-    const possibleWorkerPaths = [
-      // Local path relative to current file
-      path.join(__dirname, '../../node_modules/pdfjs-dist/legacy/build/pdf.worker.mjs'),
-      // Alternative path structure
-      path.join(__dirname, '../../node_modules/pdfjs-dist/build/pdf.worker.js'),
-      // Global installation path
-      path.join(process.env.npm_config_global || '/usr/local/lib', 'node_modules/pdfjs-dist/legacy/build/pdf.worker.mjs')
-    ];
-
-    // Try each path until we find one that exists
-    for (const workerPath of possibleWorkerPaths) {
-      if (fs.existsSync(workerPath)) {
-        pdfjsLib.GlobalWorkerOptions.workerSrc = url.pathToFileURL(workerPath).toString();
-        break;
-      }
-    }
-
-    // Fallback to CDN if no local file found
-    if (!pdfjsLib.GlobalWorkerOptions.workerSrc) {
-      pdfjsLib.GlobalWorkerOptions.workerSrc = '//cdn.jsdelivr.net/npm/pdfjs-dist@5.2.133/build/pdf.worker.min.js';
-    }
-  }
-} catch (e) {
-  // Last resort fallback to CDN
-  console.warn('Error setting up PDF.js worker, falling back to CDN:', e);
-  pdfjsLib.GlobalWorkerOptions.workerSrc = '//cdn.jsdelivr.net/npm/pdfjs-dist@5.2.133/build/pdf.worker.min.js';
-}
+const workerPath = require.resolve('pdfjs-dist/legacy/build/pdf.worker.mjs');
+pdfjsLib.GlobalWorkerOptions.workerSrc = url.pathToFileURL(workerPath).toString();
 
 /**
  * Converts a file URL to a local file path
