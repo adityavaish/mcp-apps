@@ -1,5 +1,5 @@
 import { z } from "zod";
-import * as pdfjsLib from 'pdfjs-dist/legacy/build/pdf.mjs';
+import { loadPdfWithPdfjs, extractTextFromPages } from "../services/pdfService";
 
 // Tool to extract text from PDF documents
 export const extractTextTool = {
@@ -25,34 +25,11 @@ export const extractTextTool = {
     pageNumbers?: number[];
   }) => {
     try {
-      // Load PDF document
-      const loadingTask = pdfjsLib.getDocument(filePath);
-      const pdfDocument = await loadingTask.promise;
+      // Load PDF document using the common service function
+      const pdfDocument = await loadPdfWithPdfjs(filePath);
 
-      // Get total page count
-      const numPages = pdfDocument.numPages;
-
-      // Determine which pages to extract text from
-      const pagesToExtract = pageNumbers || Array.from({ length: numPages }, (_, i) => i + 1);
-
-      // Extract text from each page
-      const result: { page: number; text: string }[] = [];
-
-      for (const pageNum of pagesToExtract) {
-        if (pageNum > numPages) {
-          console.warn(`Skipping page ${pageNum} as it exceeds the document length of ${numPages} pages`);
-          continue;
-        }
-
-        const page = await pdfDocument.getPage(pageNum);
-        const textContent = await page.getTextContent();
-        const textItems = textContent.items.map((item: any) => item.str).join(' ');
-
-        result.push({
-          page: pageNum,
-          text: textItems
-        });
-      }
+      // Extract text from specified pages using the common service function
+      const result = await extractTextFromPages(pdfDocument, pageNumbers);
 
       return {
         content: [{

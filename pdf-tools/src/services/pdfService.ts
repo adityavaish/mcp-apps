@@ -2,11 +2,11 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import * as url from 'url';
-import * as pdfjsLib from 'pdfjs-dist';
-import { PDFDocument, StandardFonts, rgb, PageSizes, degrees } from 'pdf-lib';
+import * as pdfjsLib from 'pdfjs-dist/legacy/build/pdf.mjs';
+import { DocumentInitParameters } from 'pdfjs-dist/types/src/display/api';
 
 // Set the worker source path
-pdfjsLib.GlobalWorkerOptions.workerSrc = path.join(__dirname, '../../node_modules/pdfjs-dist/build/pdf.worker.js');
+pdfjsLib.GlobalWorkerOptions.workerSrc = url.pathToFileURL(path.join(__dirname, '../../node_modules/pdfjs-dist/legacy/build/pdf.worker.mjs')).toString();
 
 /**
  * Converts a file URL to a local file path
@@ -20,6 +20,106 @@ function fileUrlToPath(fileUrl: string): string {
   }
   // If it's already a path, return as is
   return fileUrl;
+}
+
+/**
+ * Loads a PDF document using pdf.js library
+ * @param filePath Path to the PDF file
+ * @returns Promise resolving to the loaded PDF document
+ */
+export async function loadPdfWithPdfjs(filePath: string) {
+  // Load PDF document
+  const documentInitParameters: DocumentInitParameters = {
+    url: filePath,
+    enableXfa: true, // Enable XFA support
+  };
+
+  return await pdfjsLib.getDocument(documentInitParameters).promise;
+}
+
+/**
+ * Extracts text from the specified pages of a PDF document
+ * @param pdfDocument The PDF document loaded with pdf.js
+ * @param pageNumbers Array of page numbers to extract text from (1-based indexing)
+ * @returns Promise resolving to an array of objects with page number and extracted text
+ */
+export async function extractTextFromPages(pdfDocument: any, pageNumbers?: number[]) {
+  // Get total page count
+  const numPages = pdfDocument.numPages;
+
+  // Determine which pages to extract text from
+  const pagesToExtract = pageNumbers || Array.from({ length: numPages }, (_, i) => i + 1);
+
+  // Extract text from each page
+  const result: { page: number; text: string }[] = [];
+
+  for (const pageNum of pagesToExtract) {
+    if (pageNum > numPages) {
+      console.warn(`Skipping page ${pageNum} as it exceeds the document length of ${numPages} pages`);
+      continue;
+    }
+
+    const page = await pdfDocument.getPage(pageNum);
+    const textContent = await page.getTextContent();
+    let textItems = textContent.items.map((item: any) => item.str).join(' ');
+
+    // Extract XFA text content if available
+    try {
+      const xfa: any = await page.getXfa();
+      if (xfa && typeof xfa === 'object') {
+        // Extract XFA text content
+        const xfaTextContent: string[] = [];
+        
+        const flattenXfaFields = (field: any): void => {
+          if (!field) return;
+          
+          // For direct value or text content
+          let textContent = '';
+          
+          if (typeof field === 'string') {
+            textContent = field;
+          } else if (field.value) {
+            textContent = field.value;
+          } else if (field.attributes) {
+            textContent = field.attributes.title || field.attributes.value || field.attributes.textContent || '';
+          }
+          
+          if (field.name === 'textarea' || field.name === 'div') {
+            textContent += '\n';
+          }
+
+          if (textContent && textContent.trim()) {
+            xfaTextContent.push(textContent.trim());
+          }
+
+          // Process children if available
+          if (field.children && Array.isArray(field.children)) {
+            for (const child of field.children) {
+              flattenXfaFields(child);
+            }
+          }
+        };
+        
+        // Process the root XFA object and its children
+        flattenXfaFields(xfa);
+        
+        if (xfaTextContent.length > 0) {
+          // Append XFA content to the text content
+          textItems += ' ' + xfaTextContent.join(' ');
+        }
+      }
+    } catch (xfaError) {
+      console.warn(`Error extracting XFA content from page ${pageNum}:`, xfaError);
+      // Continue with the regular content extraction
+    }
+
+    result.push({
+      page: pageNum,
+      text: textItems
+    });
+  }
+
+  return result;
 }
 
 interface PDFMetadata {
@@ -42,43 +142,6 @@ interface ExtractedText {
   text: string;
 }
 
-interface PDFEditOptions {
-  operation: 'addText' | 'addImage' | 'addPage' | 'removePage' | 'rotatePage' | 'mergeDocuments' | 'splitDocument';
-  params: any;
-}
-
-interface AddTextParams {
-  text: string;
-  pageNumber: number;
-  x: number;
-  y: number;
-  fontSize?: number;
-  color?: { r: number; g: number; b: number };
-}
-
-interface AddPageParams {
-  size?: 'A4' | 'Letter' | 'Legal';
-  afterPageIndex?: number;
-}
-
-interface RemovePageParams {
-  pageIndices: number[];
-}
-
-interface RotatePageParams {
-  pageIndices: number[];
-  rotation: 90 | 180 | 270;
-}
-
-interface MergeDocumentsParams {
-  filePaths: string[];
-}
-
-interface SplitDocumentParams {
-  pageIndices: number[];
-  outputFilePath: string;
-}
-
 export class PDFService {  /**
    * Extracts text from a PDF document
    * @param filePath Path to the PDF file
@@ -95,9 +158,12 @@ export class PDFService {  /**
     }
 
     try {
-      // Load PDF document
-      const data = new Uint8Array(fs.readFileSync(localFilePath));
-      const loadingTask = pdfjsLib.getDocument({ data });
+      // Load PDF document with XFA support enabled
+      const documentInitParameters: DocumentInitParameters = {
+        url: localFilePath,
+        enableXfa: true, // Enable XFA support
+      };
+      const loadingTask = pdfjsLib.getDocument(documentInitParameters);
       const pdfDocument = await loadingTask.promise;
 
       // Get total page count
@@ -117,7 +183,57 @@ export class PDFService {  /**
 
         const page = await pdfDocument.getPage(pageNum);
         const textContent = await page.getTextContent();
-        const textItems = textContent.items.map((item: any) => item.str).join(' ');
+        let textItems = textContent.items.map((item: any) => item.str).join(' ');
+        
+        // Extract XFA text content if available
+        try {
+          const xfa: any = await page.getXfa();
+          if (xfa && typeof xfa === 'object') {
+            // Extract XFA text content
+            const xfaTextContent: string[] = [];
+            
+            const flattenXfaFields = (field: any): void => {
+              if (!field) return;
+              
+              // For direct value or text content
+              let textContent = '';
+              
+              if (typeof field === 'string') {
+                textContent = field;
+              } else if (field.value) {
+                textContent = field.value;
+              } else if (field.attributes) {
+                textContent = field.attributes.title || field.attributes.value || field.attributes.textContent || '';
+              }
+              
+              if (field.name === 'textarea' || field.name === 'div') {
+                textContent += '\n';
+              }
+  
+              if (textContent && textContent.trim()) {
+                xfaTextContent.push(textContent.trim());
+              }
+  
+              // Process children if available
+              if (field.children && Array.isArray(field.children)) {
+                for (const child of field.children) {
+                  flattenXfaFields(child);
+                }
+              }
+            };
+            
+            // Process the root XFA object and its children
+            flattenXfaFields(xfa);
+            
+            if (xfaTextContent.length > 0) {
+              // Append XFA content to the text content
+              textItems += ' ' + xfaTextContent.join(' ');
+            }
+          }
+        } catch (xfaError) {
+          console.warn(`Error extracting XFA content from page ${pageNum}:`, xfaError);
+          // Continue with the regular content extraction
+        }
 
         result.push({
           page: pageNum,
@@ -281,186 +397,6 @@ export class PDFService {  /**
     } catch (error) {
       console.error(`Error analyzing document (${analysisType}):`, error);
       throw error;
-    }
-  }
-
-  /**
-   * Edits a PDF document using pdf-lib
-   * @param sourceFilePath Path to the source PDF file
-   * @param outputFilePath Path where the edited PDF should be saved
-   * @param editOptions Options specifying the edit operation
-   * @returns Information about the edit operation
-   */
-  static async editPDF(
-    sourceFilePath: string,
-    outputFilePath: string,
-    editOptions: PDFEditOptions
-  ): Promise<{ success: boolean; message: string }> {
-    try {
-      // Check if source file exists
-      if (!fs.existsSync(sourceFilePath)) {
-        throw new Error(`Source PDF file not found: ${sourceFilePath}`);
-      }
-
-      // Ensure output directory exists
-      const outputDir = path.dirname(outputFilePath);
-      if (!fs.existsSync(outputDir)) {
-        fs.mkdirSync(outputDir, { recursive: true });
-      }
-
-      // Load the source PDF
-      const fileData = fs.readFileSync(sourceFilePath);
-      let pdfDoc = await PDFDocument.load(fileData);
-
-      // Perform the requested operation
-      switch (editOptions.operation) {
-        case 'addText': {
-          const { text, pageNumber, x, y, fontSize = 12, color = { r: 0, g: 0, b: 0 } } = editOptions.params as AddTextParams;
-
-          // Ensure the specified page exists
-          if (pageNumber < 1 || pageNumber > pdfDoc.getPageCount()) {
-            throw new Error(`Invalid page number: ${pageNumber}. Document has ${pdfDoc.getPageCount()} pages.`);
-          }
-
-          // Get the specified page (note: pdf-lib uses 0-based indexing for pages)
-          const page = pdfDoc.getPage(pageNumber - 1);
-
-          // Embed the font
-          const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
-
-          // Add text to the page
-          page.drawText(text, {
-            x,
-            y,
-            size: fontSize,
-            font,
-            color: rgb(color.r, color.g, color.b)
-          });
-
-          break;
-        }
-
-        case 'addPage': {
-          const { size = 'A4', afterPageIndex = pdfDoc.getPageCount() - 1 } = editOptions.params as AddPageParams;
-
-          // Determine page size
-          let pageSize;
-          switch (size) {
-            case 'A4':
-              pageSize = PageSizes.A4;
-              break;
-            case 'Letter':
-              pageSize = PageSizes.Letter;
-              break;
-            case 'Legal':
-              pageSize = PageSizes.Legal;
-              break;
-            default:
-              pageSize = PageSizes.A4;
-          }
-
-          // Add a new page after the specified index
-          pdfDoc.insertPage(afterPageIndex + 1, pageSize);
-
-          break;
-        }
-
-        case 'removePage': {
-          const { pageIndices } = editOptions.params as RemovePageParams;
-
-          // Sort the page indices in descending order to avoid index shifting
-          const sortedIndices = [...pageIndices].sort((a, b) => b - a);
-
-          // Remove pages
-          for (const pageIndex of sortedIndices) {
-            if (pageIndex >= 0 && pageIndex < pdfDoc.getPageCount()) {
-              pdfDoc.removePage(pageIndex);
-            } else {
-              console.warn(`Skipping invalid page index: ${pageIndex}`);
-            }
-          }
-
-          break;
-        }
-
-        case 'rotatePage': {
-          const { pageIndices, rotation } = editOptions.params as RotatePageParams;
-
-          // Apply rotation to the specified pages
-          for (const pageIndex of pageIndices) {
-            if (pageIndex >= 0 && pageIndex < pdfDoc.getPageCount()) {
-              const page = pdfDoc.getPage(pageIndex);
-              page.setRotation(degrees(rotation));
-            } else {
-              console.warn(`Skipping invalid page index: ${pageIndex}`);
-            }
-          }
-
-          break;
-        }
-
-        case 'mergeDocuments': {
-          const { filePaths } = editOptions.params as MergeDocumentsParams;
-
-          // Check if all files exist
-          for (const filePath of filePaths) {
-            if (!fs.existsSync(filePath)) {
-              throw new Error(`PDF file not found: ${filePath}`);
-            }
-          }
-
-          // Merge PDFs
-          for (const filePath of filePaths) {
-            const fileData = fs.readFileSync(filePath);
-            const pdfToMerge = await PDFDocument.load(fileData);
-            const copiedPages = await pdfDoc.copyPages(pdfToMerge, pdfToMerge.getPageIndices());
-            copiedPages.forEach(page => pdfDoc.addPage(page));
-          }
-
-          break;
-        }
-
-        case 'splitDocument': {
-          const { pageIndices, outputFilePath } = editOptions.params as SplitDocumentParams;
-
-          // Create a new PDF with selected pages
-          const newDoc = await PDFDocument.create();
-
-          // Ensure all page indices are valid
-          const validIndices = pageIndices.filter(
-            index => index >= 0 && index < pdfDoc.getPageCount()
-          );
-
-          // Copy selected pages to the new document
-          const copiedPages = await newDoc.copyPages(pdfDoc, validIndices);
-          copiedPages.forEach(page => newDoc.addPage(page));
-
-          // Save the new document
-          const newPdfBytes = await newDoc.save();
-          fs.writeFileSync(outputFilePath, newPdfBytes);
-
-          // Continue with the original document
-          break;
-        }
-
-        default:
-          throw new Error(`Unknown operation: ${editOptions.operation}`);
-      }
-
-      // Save the edited PDF
-      const pdfBytes = await pdfDoc.save();
-      fs.writeFileSync(outputFilePath, pdfBytes);
-
-      return {
-        success: true,
-        message: `PDF successfully edited with operation: ${editOptions.operation}`
-      };
-    } catch (error) {
-      console.error(`Error editing PDF with operation ${editOptions.operation}:`, error);
-      return {
-        success: false,
-        message: error instanceof Error ? error.message : String(error)
-      };
     }
   }
 }
