@@ -41,7 +41,7 @@ export async function getAccessToken(clientId: string | undefined, tenantId: str
       }
     );
 
-    const tokenResponse = await credential.getToken(scopes || [`${resolvedClientId}/.default`]);
+    const tokenResponse = await credential.getToken([`${resolvedClientId}/.default`].concat(scopes ? scopes : []));
 
     if (!tokenResponse || !tokenResponse.token) {
       throw new Error("Failed to acquire Azure DevOps token");
