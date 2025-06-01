@@ -2,7 +2,10 @@ import * as azdev from "azure-devops-node-api";
 import * as WorkItemTrackingApi from "azure-devops-node-api/WorkItemTrackingApi";
 import * as GitApi from "azure-devops-node-api/GitApi";
 import { CoreApi } from "azure-devops-node-api/CoreApi";
+import { BuildApi } from "azure-devops-node-api/BuildApi";
+import { ReleaseApi } from "azure-devops-node-api/ReleaseApi";
 import { getAccessToken } from "./token-manager";
+import { PipelinesApi } from "azure-devops-node-api/PipelinesApi";
 
 let connection: azdev.WebApi | null = null;
 
@@ -34,4 +37,19 @@ export async function getGitApi(organizationUrl: string): Promise<GitApi.IGitApi
 export async function getCoreApi(organizationUrl: string): Promise<CoreApi> {
     const connection = await getAzureDevOpsConnection(organizationUrl);
     return await connection.getCoreApi();
+}
+
+export async function getBuildApi(organizationUrl: string): Promise<BuildApi> {
+    const connection = await getAzureDevOpsConnection(organizationUrl);
+    return await connection.getBuildApi();
+}
+
+export async function getReleaseApi(organizationUrl: string): Promise<ReleaseApi> {
+    const connection = await getAzureDevOpsConnection(organizationUrl);
+    return await connection.getReleaseApi();
+}
+
+export async function getPipelinesApi(organizationUrl: string): Promise<PipelinesApi> {
+    const connection = await getAzureDevOpsConnection(organizationUrl);
+    return await connection.getPipelinesApi();
 }

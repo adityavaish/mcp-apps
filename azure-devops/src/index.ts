@@ -15,6 +15,14 @@ import {
     getRepositoryStatusTool,
     commitChangesTool
 } from "./tools/git-commands";
+import {
+    listBuildPipelinesTool,
+    getBuildPipelineDetailsTool,
+    listBuildRunsTool,
+    listReleasePipelinesTool,
+    getReleasePipelineDetailsTool,
+    listReleaseRunsTool
+} from "./tools/pipelines";
 
 // FOR TESTING ONLY: Uncomment the following lines to use a specific access token
 // import { getAccessToken } from "./utils/token-manager";
@@ -129,6 +137,49 @@ server.tool(
     commitChangesTool.description,
     commitChangesTool.parameters,
     commitChangesTool.handler
+);
+
+// Register pipeline tools
+server.tool(
+    listBuildPipelinesTool.name,
+    listBuildPipelinesTool.description,
+    listBuildPipelinesTool.parameters,
+    listBuildPipelinesTool.handler
+);
+
+server.tool(
+    getBuildPipelineDetailsTool.name,
+    getBuildPipelineDetailsTool.description,
+    getBuildPipelineDetailsTool.parameters,
+    getBuildPipelineDetailsTool.handler
+);
+
+server.tool(
+    listBuildRunsTool.name,
+    listBuildRunsTool.description,
+    listBuildRunsTool.parameters,
+    listBuildRunsTool.handler
+);
+
+server.tool(
+    listReleasePipelinesTool.name,
+    listReleasePipelinesTool.description,
+    listReleasePipelinesTool.parameters,
+    listReleasePipelinesTool.handler
+);
+
+server.tool(
+    getReleasePipelineDetailsTool.name,
+    getReleasePipelineDetailsTool.description,
+    getReleasePipelineDetailsTool.parameters,
+    getReleasePipelineDetailsTool.handler
+);
+
+server.tool(
+    listReleaseRunsTool.name,
+    listReleaseRunsTool.description,
+    listReleaseRunsTool.parameters,
+    listReleaseRunsTool.handler
 );
 
 // Start the server
