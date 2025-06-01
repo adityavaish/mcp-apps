@@ -148,7 +148,7 @@ export const createWorkItemTool = {
 
             patchDocument.push({
                 op: "add",
-                path: "/fields/System.Tag",
+                path: "/fields/System.Tags",
                 value: "Created by AI",
             });
 
