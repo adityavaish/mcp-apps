@@ -33,15 +33,25 @@ describe('executeQueryTool', () => {
   });
 
   it.each([
-    ['alter table command', 'alter table TestTable'],
-    ['create table command', 'create table NewTable'],
-    ['drop table command', 'drop table OldTable'],
-    ['set command', 'set quotas'],
-    ['function command', '.show function'],
-    ['policy command', '.show policy'],
-    ['purge command', '.purge table'],
-    ['ingestion command', '.show ingestion'],
-    ['management command', '.show management'],
+    ['alter table command', '.alter table TestTable (Column1: string)'],
+    ['create table command', '.create table NewTable (id: int)'],
+    ['drop table command', '.drop table OldTable'],
+    ['set command', '.set quotas'],
+    ['create function command', '.create function TestFunc() { print "test" }'],
+    ['alter function command', '.alter function TestFunc() { print "modified" }'],
+    ['drop function command', '.drop function TestFunc'],
+    ['show function command', '.show function TestFunc'],
+    ['create policy command', '.create policy caching'],
+    ['alter policy command', '.alter policy retention'],
+    ['delete policy command', '.delete policy caching'],
+    ['show policy command', '.show policy retention'],
+    ['purge command', '.purge table TestTable records'],
+    ['ingest command', '.ingest into table TestTable'],
+    ['show ingestion command', '.show ingestion failures'],
+    ['create ingestion command', '.create ingestion mapping'],
+    ['show management command', '.show management groups'],
+    ['create cluster command', '.create cluster test'],
+    ['alter cluster command', '.alter cluster policy'],
     ['render command', 'StormEvents | render timechart'],
   ])('should reject %s', async (testCase, query) => {
     const result = await executeQueryTool.handler({
@@ -51,17 +61,19 @@ describe('executeQueryTool', () => {
     });
 
     expect(result.content[0].text).toContain('Error: The query contains forbidden administrative commands');
-
-    console.log(result.content[0].text); // For debugging purposes
-
     expect(KustoService.executeQuery).not.toHaveBeenCalled();
   });
 
   it.each([
     ['database command', '.show database'],
     ['cluster command', 'cluster("other")'],
-    ['let statement', 'let var = 10']
+    ['let statement', 'let var = 10'],
+    ['query with ingestion in column name', 'KeyGroupCurrentState | where SynapseJobIngestionTime > ago(7d) | take 1'],
+    ['query with function in column name', 'TestTable | where FunctionName == "test"'],
+    ['query with policy in column name', 'TestTable | where PolicyType == "retention"']
   ])('should accept %s', async (testCase, query) => {
+    vi.mocked(KustoService.executeQuery).mockResolvedValueOnce([]);
+
     await executeQueryTool.handler({
       clusterUrl: 'https://test.kusto.windows.net',
       database: 'testdb',

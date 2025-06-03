@@ -24,17 +24,27 @@ export const executeQueryTool = {
     query: string;
     maxRows?: number;
   }) => {
-    // Define control command patterns
+    // Define control command patterns - these should match actual control commands, not just words
     const controlCommandPatterns = [
-      /alter\s+table/i,
-      /create\s+table/i,
-      /drop\s+table/i,
-      /set\s+/i,
-      /function/i,
-      /policy/i,
-      /purge/i,
-      /ingestion/i,
-      /management/i,
+      /^\.?\s*alter\s+table/i,
+      /^\.?\s*create\s+table/i,
+      /^\.?\s*drop\s+table/i,
+      /^\.?\s*set\s+/i,
+      /^\.?\s*create\s+function/i,
+      /^\.?\s*alter\s+function/i,
+      /^\.?\s*drop\s+function/i,
+      /^\.?\s*show\s+function/i,
+      /^\.?\s*create\s+policy/i,
+      /^\.?\s*alter\s+policy/i,
+      /^\.?\s*delete\s+policy/i,
+      /^\.?\s*show\s+policy/i,
+      /^\.?\s*purge\s+/i,
+      /^\.?\s*ingest\s+/i,
+      /^\.?\s*show\s+ingestion/i,
+      /^\.?\s*create\s+ingestion/i,
+      /^\.?\s*show\s+management/i,
+      /^\.?\s*create\s+cluster/i,
+      /^\.?\s*alter\s+cluster/i,
       /\|\s*render/i
     ];
 
