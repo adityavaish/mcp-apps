@@ -23,6 +23,11 @@ import {
     getReleasePipelineDetailsTool,
     listReleaseRunsTool
 } from "./tools/pipelines";
+import {
+    queryTestCasesTool,
+    getTestCaseDetailsTool,
+    createTestCaseTool
+} from "./tools/test-cases.js";
 
 // FOR TESTING ONLY: Uncomment the following lines to use a specific access token
 // import { getAccessToken } from "./utils/token-manager";
@@ -180,6 +185,28 @@ server.tool(
     listReleaseRunsTool.description,
     listReleaseRunsTool.parameters,
     listReleaseRunsTool.handler
+);
+
+// Register test case tools
+server.tool(
+    queryTestCasesTool.name,
+    queryTestCasesTool.description,
+    queryTestCasesTool.parameters,
+    queryTestCasesTool.handler
+);
+
+server.tool(
+    getTestCaseDetailsTool.name,
+    getTestCaseDetailsTool.description,
+    getTestCaseDetailsTool.parameters,
+    getTestCaseDetailsTool.handler
+);
+
+server.tool(
+    createTestCaseTool.name,
+    createTestCaseTool.description,
+    createTestCaseTool.parameters,
+    createTestCaseTool.handler
 );
 
 // Start the server
