@@ -564,48 +564,6 @@ export class AzureDevOpsService {
         }
     }
 
-    /**
-     * Get PRs merged since the last successful deployment
-     */
-    async getPRsSinceLastDeployment(
-        organizationUrl: string,
-        project: string,
-        repositoryName: string,
-        serviceGroupName: string,
-        pipelineId: string,
-        days: number = 7
-    ) {
-        try {
-            const { getUndeployedPRs } = await import('./get_undeployed_prs.js');
-            
-            const result = await getUndeployedPRs({
-                organizationUrl,
-                project,
-                repositoryName,
-                serviceGroupName,
-                pipelineId,
-                days
-            });
-
-            if (result.status === 'error') {
-                throw new Error(result.error || result.message || 'Failed to get undeployed PRs');
-            }
-
-            return {
-                prs: result.prsNotDeployed || [],
-                lastDeployment: result.lastDeployment,
-                summary: {
-                    totalPRs: result.prsNotDeployed?.length || 0,
-                    analysisDate: new Date().toISOString(),
-                    lookbackDays: days
-                }
-            };
-        } catch (error) {
-            console.error('Error getting PRs since last deployment:', error);
-            throw error;
-        }
-    }
-
     // Helper methods that need to be implemented
     private createEmptySummary(fromDate: Date, days: number): PRSummary {
         return {
@@ -954,7 +912,7 @@ export class AzureDevOpsService {
         return testPatterns.some(pattern => pattern.test(filePath));
     }
 
-    // TODO: Add more helper methods from Commerce.BM project
+    // TODO: Add more helper methods for comprehensive test analysis
     // These are simplified stubs - need full implementations
 
     private analyzeTestFiles(fileChanges: any[], includeTestFiles: boolean): any {

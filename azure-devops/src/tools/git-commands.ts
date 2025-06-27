@@ -1,4 +1,3 @@
-// filepath: c:\repos\Copilot.Commerce.BM\mcp\azure-devops\src\tools\git-commands.ts
 import { z } from "zod";
 import * as GitInterfaces from "azure-devops-node-api/interfaces/GitInterfaces";
 import { getGitApi } from "../utils/azure-devops-client";

@@ -22,7 +22,6 @@
     "test:code-diffs": "node dist/test/test-get-pr-code-diffs.js",
     "test:detailed-changes": "node dist/test/test-get-pr-detailed-changes.js",
     "test:test-impact": "node dist/test/test-get-pr-test-impact.js",
-    "test:deployment": "node dist/test/test-get-prs-since-last-deployment.js",
     "test:recent-prs": "node dist/test/test-get-recent-prs.js",
     "test:repository-context": "node dist/test/test-get-repository-context.js",
     "debug": "npx @modelcontextprotocol/inspector node dist/index.js",
