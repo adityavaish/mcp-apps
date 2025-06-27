@@ -29,23 +29,23 @@
     "token": "npx vsts-npm-auth -config .npmrc"
   },
   "dependencies": {
-    "@azure/identity": "^4.8.0",
-    "@azure/msal-node": "^3.5.0",
-    "@modelcontextprotocol/sdk": "^1.9.0",
+    "@azure/identity": "^4.10.1",
+    "@azure/msal-node": "^3.6.1",
+    "@modelcontextprotocol/sdk": "^1.13.2",
     "axios": "^1.10.0",
-    "azure-devops-node-api": "^14.1.0",
+    "azure-devops-node-api": "^15.1.0",
     "date-fns": "^4.1.0",
     "diff": "^8.0.2",
-    "dotenv": "^16.4.7",
+    "dotenv": "^16.6.1",
     "express": "^5.1.0",
     "node-fetch": "^3.3.2",
-    "open": "^10.1.0",
-    "zod": "^3.24.2"
+    "open": "^10.1.2",
+    "zod": "^3.25.67"
   },
   "devDependencies": {
-    "@modelcontextprotocol/inspector": "^0.8.2",
-    "@types/express": "^5.0.1",
-    "@types/node": "^22.14.0",
+    "@modelcontextprotocol/inspector": "^0.14.3",
+    "@types/express": "^5.0.3",
+    "@types/node": "^24.0.5",
     "rimraf": "^6.0.1",
     "ts-node": "^10.9.2",
     "typescript": "^5.8.3"
