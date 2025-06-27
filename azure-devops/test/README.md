@@ -1,6 +1,6 @@
 # Azure DevOps MCP Server Tests
 
-This directory contains test files for the 7 PR analysis tools ported from the Copilot.Commerce.BM project.
+This directory contains test files for the PR analysis tools.
 
 ## Test Files
 
@@ -21,13 +21,10 @@ Tests the `get-pr-test-impact` tool which analyzes test coverage implications of
 - Comprehensive depth analysis  
 - Error handling for invalid PRs
 
-### 5. `test-get-prs-since-last-deployment.ts`
-Tests the `get-prs-since-last-deployment` tool which retrieves PRs merged since the last successful production deployment.
-
-### 6. `test-get-recent-prs.ts`
+### 5. `test-get-recent-prs.ts`
 Tests the `get-recent-prs` tool which fetches recently completed PRs for risk assessment.
 
-### 7. `test-get-repository-context.ts`
+### 6. `test-get-repository-context.ts`
 Tests the `get-repository-context` tool which provides comprehensive repository analysis. Includes 6 test scenarios:
 - Full context analysis
 - File structure only
@@ -52,9 +49,6 @@ npm run test:detailed-changes
 
 # Run test impact analysis
 npm run test:test-impact
-
-# Run deployment tracking test
-npm run test:deployment
 
 # Run recent PRs test
 npm run test:recent-prs

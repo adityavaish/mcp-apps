@@ -34,7 +34,7 @@ import { getPRBasicInfoTool } from "./tools/get-pr-basic-info";
 import { getPRCodeDiffsTool } from "./tools/get-pr-code-diffs";
 import { getPRDetailedChangesTool } from "./tools/get-pr-detailed-changes";
 import { getPRTestImpactTool } from "./tools/get-pr-test-impact";
-import { getPRsSinceLastDeploymentTool, handleGetPRsSinceLastDeployment, GetPRsSinceLastDeploymentSchema } from "./tools/get-prs-since-last-deployment";
+
 import { getRecentPRsTool } from "./tools/get-recent-prs";
 import { getRepositoryContextTool } from "./tools/get-repository-context";
 
@@ -247,15 +247,6 @@ server.tool(
     getPRTestImpactTool.handler
 );
 
-server.tool(
-    getPRsSinceLastDeploymentTool.name,
-    getPRsSinceLastDeploymentTool.description || 'Get PRs since last deployment',
-    GetPRsSinceLastDeploymentSchema.shape,
-    async (args: any) => {
-      const request = GetPRsSinceLastDeploymentSchema.parse(args);
-      return await handleGetPRsSinceLastDeployment(request);
-    }
-);
 
 server.tool(
     getRecentPRsTool.name,
