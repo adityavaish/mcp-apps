@@ -29,6 +29,15 @@ import {
     createTestCaseTool
 } from "./tools/test-cases.js";
 
+// Import new PR analysis tools
+import { getPRBasicInfoTool } from "./tools/get-pr-basic-info";
+import { getPRCodeDiffsTool } from "./tools/get-pr-code-diffs";
+import { getPRDetailedChangesTool } from "./tools/get-pr-detailed-changes";
+import { getPRTestImpactTool } from "./tools/get-pr-test-impact";
+import { getPRsSinceLastDeploymentTool, handleGetPRsSinceLastDeployment, GetPRsSinceLastDeploymentSchema } from "./tools/get-prs-since-last-deployment";
+import { getRecentPRsTool } from "./tools/get-recent-prs";
+import { getRepositoryContextTool } from "./tools/get-repository-context";
+
 // FOR TESTING ONLY: Uncomment the following lines to use a specific access token
 // import { getAccessToken } from "./utils/token-manager";
 // const accessToken = getAccessToken();
@@ -207,6 +216,59 @@ server.tool(
     createTestCaseTool.description,
     createTestCaseTool.parameters,
     createTestCaseTool.handler
+);
+
+// Register PR analysis tools
+server.tool(
+    getPRBasicInfoTool.name,
+    getPRBasicInfoTool.description,
+    getPRBasicInfoTool.parameters,
+    getPRBasicInfoTool.handler
+);
+
+server.tool(
+    getPRCodeDiffsTool.name,
+    getPRCodeDiffsTool.description,
+    getPRCodeDiffsTool.parameters,
+    getPRCodeDiffsTool.handler
+);
+
+server.tool(
+    getPRDetailedChangesTool.name,
+    getPRDetailedChangesTool.description,
+    getPRDetailedChangesTool.parameters,
+    getPRDetailedChangesTool.handler
+);
+
+server.tool(
+    getPRTestImpactTool.name,
+    getPRTestImpactTool.description,
+    getPRTestImpactTool.parameters,
+    getPRTestImpactTool.handler
+);
+
+server.tool(
+    getPRsSinceLastDeploymentTool.name,
+    getPRsSinceLastDeploymentTool.description || 'Get PRs since last deployment',
+    GetPRsSinceLastDeploymentSchema.shape,
+    async (args: any) => {
+      const request = GetPRsSinceLastDeploymentSchema.parse(args);
+      return await handleGetPRsSinceLastDeployment(request);
+    }
+);
+
+server.tool(
+    getRecentPRsTool.name,
+    getRecentPRsTool.description,
+    getRecentPRsTool.parameters,
+    getRecentPRsTool.handler
+);
+
+server.tool(
+    getRepositoryContextTool.name,
+    getRepositoryContextTool.description,
+    getRepositoryContextTool.parameters,
+    getRepositoryContextTool.handler
 );
 
 // Start the server
