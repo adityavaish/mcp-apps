@@ -1,4 +1,3 @@
-<!-- filepath: c:\repos\Copilot.Commerce.BM\mcp\azure-devops\README.md -->
 # Azure DevOps MCP Server
 
 An [MCP (Model Context Protocol)](https://modelcontextprotocol.io/) server that connects to your Azure DevOps organization, exposing projects, repositories, and work items as resources and providing tools for working with Azure DevOps.
