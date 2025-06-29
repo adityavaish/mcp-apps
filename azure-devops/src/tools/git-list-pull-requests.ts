@@ -24,18 +24,22 @@ export const listPullRequestsTool = {
             - "abandoned": Discarded pull requests
             - "completed": Merged/completed pull requests
             - "all": All pull requests regardless of status
+        - days: Optional number of days back to look for PRs (only applies to completed PRs)
+          Example: 7 for last 7 days, 30 for last 30 days
     `,
     parameters: {
         organizationUrl: z.string().describe("Azure DevOps organization URL (e.g., https://dev.azure.com/organization)"),
         project: z.string().describe("Project name"),
         repositoryName: z.string().describe("Repository name"),
         status: z.enum(["active", "abandoned", "completed", "all"]).default("active").describe("Pull request status"),
+        days: z.number().int().min(1).max(365).optional().describe("Number of days back to look for PRs (only applies to completed PRs)"),
     },
-    handler: async ({ organizationUrl, project, repositoryName, status }: {
+    handler: async ({ organizationUrl, project, repositoryName, status, days }: {
         organizationUrl: string;
         project: string;
         repositoryName: string;
         status: "active" | "abandoned" | "completed" | "all";
+        days?: number;
     }) => {
         try {
             const gitApi = await getGitApi(organizationUrl);
@@ -71,13 +75,32 @@ export const listPullRequestsTool = {
                 };
             }
 
+            // Filter by days if specified and status is completed
+            let filteredPRs = pullRequests;
+            if (days && (status === "completed" || status === "all")) {
+                const cutoffDate = new Date();
+                cutoffDate.setDate(cutoffDate.getDate() - days);
+                
+                filteredPRs = pullRequests.filter(pr => {
+                    if (pr.closedDate) {
+                        return new Date(pr.closedDate) >= cutoffDate;
+                    }
+                    return false;
+                });
+            }
+
             // Format the results
-            const formattedText = pullRequests.map((pr) => {
-                return `Title: ${pr.title}\nID: ${pr.pullRequestId}\nStatus: ${pr.status}\nCreated by: ${pr.createdBy?.displayName || "Unknown"}\nSource Branch: ${pr.sourceRefName}\nTarget Branch: ${pr.targetRefName}\nURL: ${pr.url}\n-------------------------`;
+            const formattedText = filteredPRs.map((pr) => {
+                const closedInfo = pr.closedDate ? `\nClosed: ${pr.closedDate}` : '';
+                return `Title: ${pr.title}\nID: ${pr.pullRequestId}\nStatus: ${pr.status}\nCreated by: ${pr.createdBy?.displayName || "Unknown"}\nSource Branch: ${pr.sourceRefName}\nTarget Branch: ${pr.targetRefName}${closedInfo}\nURL: ${pr.url}\n-------------------------`;
             }).join("\n");
 
+            const resultSummary = days && (status === "completed" || status === "all") 
+                ? `Found ${filteredPRs.length} ${status} pull requests in the last ${days} days:`
+                : `Found ${filteredPRs.length} ${status} pull requests:`;
+
             return {
-                content: [{ type: "text" as const, text: formattedText }],
+                content: [{ type: "text" as const, text: `${resultSummary}\n\n${formattedText}` }],
             };
         } catch (error) {
             console.error("Error listing pull requests:", error);

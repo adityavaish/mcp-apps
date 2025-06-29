@@ -4,20 +4,20 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 
 // Import tools
-import { listWorkItemsTool, createWorkItemTool, updateWorkItemTool } from "./tools/work-items";
+import { listWorkItemsTool } from "./tools/list-work-items";
+import { createWorkItemTool } from "./tools/create-work-item";
+import { updateWorkItemTool } from "./tools/update-work-item";
 import { listRepositoriesTool } from "./tools/git-list-repositories";
 import { listPullRequestsTool } from "./tools/git-list-pull-requests";
 import { getRepositoryFileTool } from "./tools/git-get-repository-file";
 import { createPullRequestTool } from "./tools/git-create-pull-request";
 import { listProjectsTool } from "./tools/projects";
-import { 
-    gitCommandTool, 
-    cloneRepositoryTool, 
-    createBranchTool, 
-    pushChangesTool, 
-    getRepositoryStatusTool,
-    commitChangesTool
-} from "./tools/git-commands";
+import { gitCommandTool } from "./tools/git-command";
+import { cloneRepositoryTool } from "./tools/git-clone-repository";
+import { createBranchTool } from "./tools/git-create-branch";
+import { pushChangesTool } from "./tools/git-push-changes";
+import { getRepositoryStatusTool } from "./tools/git-get-repository-status";
+import { commitChangesTool } from "./tools/git-commit-changes";
 import {
     listBuildPipelinesTool,
     getBuildPipelineDetailsTool,
@@ -38,7 +38,6 @@ import { getPRCodeDiffsTool } from "./tools/get-pr-code-diffs";
 import { getPRDetailedChangesTool } from "./tools/get-pr-detailed-changes";
 import { getPRTestImpactTool } from "./tools/get-pr-test-impact";
 
-import { getRecentPRsTool } from "./tools/get-recent-prs";
 import { getRepositoryContextTool } from "./tools/get-repository-context";
 
 // FOR TESTING ONLY: Uncomment the following lines to use a specific access token
@@ -248,14 +247,6 @@ server.tool(
     getPRTestImpactTool.description,
     getPRTestImpactTool.parameters,
     getPRTestImpactTool.handler
-);
-
-
-server.tool(
-    getRecentPRsTool.name,
-    getRecentPRsTool.description,
-    getRecentPRsTool.parameters,
-    getRecentPRsTool.handler
 );
 
 server.tool(
