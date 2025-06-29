@@ -5,7 +5,10 @@ import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js"
 
 // Import tools
 import { listWorkItemsTool, createWorkItemTool, updateWorkItemTool } from "./tools/work-items";
-import { listRepositoriesTool, listPullRequestsTool, getRepositoryFileTool, createPullRequestTool } from "./tools/repositories";
+import { listRepositoriesTool } from "./tools/git-list-repositories";
+import { listPullRequestsTool } from "./tools/git-list-pull-requests";
+import { getRepositoryFileTool } from "./tools/git-get-repository-file";
+import { createPullRequestTool } from "./tools/git-create-pull-request";
 import { listProjectsTool } from "./tools/projects";
 import { 
     gitCommandTool, 
