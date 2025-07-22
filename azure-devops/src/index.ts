@@ -15,9 +15,6 @@ import { listProjectsTool } from "./tools/projects";
 import { gitCommandTool } from "./tools/git-command";
 import { cloneRepositoryTool } from "./tools/git-clone-repository";
 import { createBranchTool } from "./tools/git-create-branch";
-import { pushChangesTool } from "./tools/git-push-changes";
-import { getRepositoryStatusTool } from "./tools/git-get-repository-status";
-import { commitChangesTool } from "./tools/git-commit-changes";
 import {
     listBuildPipelinesTool,
     getBuildPipelineDetailsTool,
@@ -32,10 +29,8 @@ import {
     createTestCaseTool
 } from "./tools/test-cases.js";
 
-// Import new PR analysis tools
-import { getPRBasicInfoTool } from "./tools/get-pr-basic-info";
+// Import PR analysis tools
 import { getPRCodeDiffsTool } from "./tools/get-pr-code-diffs";
-import { getPRDetailedChangesTool } from "./tools/get-pr-detailed-changes";
 import { getPRTestImpactTool } from "./tools/get-pr-test-impact";
 
 import { getRepositoryContextTool } from "./tools/get-repository-context";
@@ -134,26 +129,7 @@ server.tool(
     createBranchTool.handler
 );
 
-server.tool(
-    pushChangesTool.name,
-    pushChangesTool.description,
-    pushChangesTool.parameters,
-    pushChangesTool.handler
-);
-
-server.tool(
-    getRepositoryStatusTool.name,
-    getRepositoryStatusTool.description,
-    getRepositoryStatusTool.parameters,
-    getRepositoryStatusTool.handler
-);
-
-server.tool(
-    commitChangesTool.name,
-    commitChangesTool.description,
-    commitChangesTool.parameters,
-    commitChangesTool.handler
-);
+// Git operations can be handled through the gitCommandTool
 
 // Register pipeline tools
 server.tool(
@@ -222,24 +198,10 @@ server.tool(
 
 // Register PR analysis tools
 server.tool(
-    getPRBasicInfoTool.name,
-    getPRBasicInfoTool.description,
-    getPRBasicInfoTool.parameters,
-    getPRBasicInfoTool.handler
-);
-
-server.tool(
     getPRCodeDiffsTool.name,
     getPRCodeDiffsTool.description,
     getPRCodeDiffsTool.parameters,
     getPRCodeDiffsTool.handler
-);
-
-server.tool(
-    getPRDetailedChangesTool.name,
-    getPRDetailedChangesTool.description,
-    getPRDetailedChangesTool.parameters,
-    getPRDetailedChangesTool.handler
 );
 
 server.tool(
