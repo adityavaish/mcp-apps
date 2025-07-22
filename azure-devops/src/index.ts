@@ -129,8 +129,6 @@ server.tool(
     createBranchTool.handler
 );
 
-// Git operations can be handled through the gitCommandTool
-
 // Register pipeline tools
 server.tool(
     listBuildPipelinesTool.name,
