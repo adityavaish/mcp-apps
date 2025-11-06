@@ -1,0 +1,39 @@
+{
+  "name": "@mcp-apps/synapse-mcp-server",
+  "version": "1.0.0",
+  "description": "MCP server for Azure Synapse workspace operations including ADLS Gen2 and pipeline management",
+  "main": "dist/index.js",
+  "type": "module",
+  "bin": {
+    "synapse-mcp-server": "./dist/index.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "prepare": "npm run build",
+    "start": "node dist/index.js",
+    "dev": "node --no-warnings --enable-source-maps dist/index.js",
+    "watch": "tsc -w",
+    "clean": "rimraf dist",
+    "rebuild": "npm run clean && npm run build",
+    "test": "vitest run",
+    "debug": "npx @modelcontextprotocol/inspector node dist/index.js"
+  },
+  "dependencies": {
+    "@azure/identity": "^4.5.0",
+    "@azure/storage-blob": "^12.25.0",
+    "@azure/storage-file-datalake": "^12.24.0",
+    "@azure/synapse-artifacts": "^1.0.0-beta.15",
+    "@modelcontextprotocol/sdk": "^1.13.2",
+    "dotenv": "^16.6.1",
+    "vscode-mcp-server": "^0.2.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.2",
+    "rimraf": "^6.0.1",
+    "typescript": "^5.7.2",
+    "vitest": "^2.1.8"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
