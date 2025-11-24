@@ -1,0 +1,53 @@
+{
+  "name": "@mcp-apps/delta-table-mcp-server",
+  "version": "1.0.0",
+  "description": "MCP server for delta table operations on Azure Data Lake Storage",
+  "main": "dist/index.js",
+  "type": "commonjs",
+  "bin": {
+    "delta-table-mcp-server": "./dist/index.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "prepare": "npm run build",
+    "start": "node dist/index.js",
+    "dev": "node --no-warnings --enable-source-maps dist/index.js",
+    "watch": "tsc -w",
+    "clean": "rimraf dist",
+    "rebuild": "npm run clean && npm run build",
+    "unpublish": "npm unpublish --force",
+    "test": "npm run build && node test.mjs",
+    "test:service": "npm run build && node test.mjs",
+    "debug": "npx @modelcontextprotocol/inspector node dist/index.js"
+  },
+  "dependencies": {
+    "@azure/identity": "^4.0.1",
+    "@azure/storage-file-datalake": "^12.17.0",
+    "@dsnp/parquetjs": "^1.8.7",
+    "@modelcontextprotocol/sdk": "^1.9.0",
+    "apache-arrow": "^17.0.0",
+    "parquet-wasm": "^0.6.1",
+    "vscode-mcp-server": "^0.2.0",
+    "zod": "^3.24.2"
+  },
+  "devDependencies": {
+    "@modelcontextprotocol/inspector": "^0.8.2",
+    "@types/node": "^22.14.1",
+    "rimraf": "^6.0.1",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.8.3"
+  },
+  "keywords": [
+    "mcp",
+    "delta-table",
+    "azure",
+    "data-lake",
+    "model-context-protocol",
+    "storage",
+    "parquet",
+    "copilot",
+    "ai-assistant"
+  ],
+  "author": "",
+  "license": "MIT"
+}
