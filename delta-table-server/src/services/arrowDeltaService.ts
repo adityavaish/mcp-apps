@@ -1,34 +1,47 @@
 import { DataLakeServiceClient } from "@azure/storage-file-datalake";
-import { DefaultAzureCredential } from "@azure/identity";
 import * as arrow from "apache-arrow";
 import * as fs from "fs";
 import * as path from "path";
 import { v4 as uuidv4 } from "uuid";
 // @ts-ignore - parquet-wasm doesn't have complete types
 import { writeParquet as writeParquetWasm, Table as WasmTable, WriterPropertiesBuilder } from "parquet-wasm/node";
+import { getAccessToken } from "./token-manager.js";
 
 export interface TestRecord {
   [key: string]: any;
 }
 
 export class ArrowDeltaService {
-  private client: DataLakeServiceClient;
   private containerName: string;
+  private accountName: string;
+  private clientId?: string;
+  private tenantId?: string;
 
   constructor() {
-    const accountName = process.env.AZURE_STORAGE_ACCOUNT_NAME;
-    const containerName = process.env.AZURE_STORAGE_CONTAINER_NAME;
+    this.accountName = process.env.AZURE_STORAGE_ACCOUNT_NAME || "";
+    this.containerName = process.env.AZURE_STORAGE_CONTAINER_NAME || "";
+    this.clientId = process.env.AZURE_CLIENT_ID;
+    this.tenantId = process.env.AZURE_TENANT_ID;
 
-    if (!accountName) {
+    if (!this.accountName) {
       throw new Error("AZURE_STORAGE_ACCOUNT_NAME environment variable is required");
     }
-    if (!containerName) {
+    if (!this.containerName) {
       throw new Error("AZURE_STORAGE_CONTAINER_NAME environment variable is required");
     }
+  }
 
-    this.containerName = containerName;
-    const accountUrl = `https://${accountName}.dfs.core.windows.net`;
-    this.client = new DataLakeServiceClient(accountUrl, new DefaultAzureCredential());
+  private async getDataLakeServiceClient(): Promise<DataLakeServiceClient> {
+    const token = await getAccessToken(
+      this.clientId,
+      this.tenantId,
+      ["https://storage.azure.com/.default"],
+      true
+    );
+    const credential = {
+      getToken: async () => ({ token, expiresOnTimestamp: Date.now() + 3600000 })
+    };
+    return new DataLakeServiceClient(`https://${this.accountName}.dfs.core.windows.net`, credential as any);
   }
 
   /**
@@ -158,7 +171,8 @@ export class ArrowDeltaService {
         throw new Error("Cannot write empty records array");
       }
 
-      const fileSystemClient = this.client.getFileSystemClient(this.containerName);
+      const client = await this.getDataLakeServiceClient();
+      const fileSystemClient = client.getFileSystemClient(this.containerName);
       const timestamp = Date.now();
       const fileName = `part-${timestamp}-${uuidv4()}.parquet`;
       const filePath = `${tablePath}/${fileName}`;

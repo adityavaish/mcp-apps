@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { KustoService } from "../services/kustoService";
+import { KustoService } from "../services/kustoService.js";
 
 // Tool to list tables in the database
 export const listTablesTool = {

@@ -26,6 +26,7 @@ export const apiCallTool = {  name: 'call_api',  description: `Makes an API call
     - authority: Authority URL (optional for authType='interactive')
     - scopes: Array of OAuth scopes (optional for authType='interactive')
     - redirectUri: Redirect URI (optional for authType='interactive')
+    - useBroker: Use Windows broker authentication (optional for authType='interactive')
   
   ## Example usage:
   - To call a public REST API:
@@ -60,7 +61,8 @@ export const apiCallTool = {  name: 'call_api',  description: `Makes an API call
       tenantId: z.string().optional().describe('Tenant ID for interactive authentication (defaults to "common")'),
       authority: z.string().optional().describe('Authority URL for authentication'),
       scopes: z.array(z.string()).optional().describe('Scopes required for API access'),
-      redirectUri: z.string().optional().describe('Redirect URI for authentication callback')
+      redirectUri: z.string().optional().describe('Redirect URI for authentication callback'),
+      useBroker: z.boolean().optional().default(true).describe('Use Windows broker authentication (WAM)')
     }).optional().describe('Authentication configuration')
   },
   handler: async ({ endpoint, method, path, queryParams, headers, body, authType, authConfig }: {
@@ -81,8 +83,10 @@ export const apiCallTool = {  name: 'call_api',  description: `Makes an API call
       authority?: string;
       scopes?: string[] | undefined;
       redirectUri?: string;
+      useBroker?: boolean;
     };
-  }) => {    try {
+  }) => {    
+    try {
       const response = await ApiService.callApi({
         endpoint,
         method,

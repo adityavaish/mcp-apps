@@ -19,6 +19,7 @@ export interface ApiRequestConfig {
     tenantId?: string;
     scopes?: string[] | undefined;
     redirectUri?: string;
+    useBroker?: boolean;
   };
 }
 
@@ -53,7 +54,12 @@ export class ApiService {
 
       } else if (config.authType === 'interactive') {
         try {
-          const token = await getAccessToken(config.authConfig?.clientId, config.authConfig?.tenantId, config.authConfig?.scopes);
+          const token = await getAccessToken(
+            config.authConfig?.clientId, 
+            config.authConfig?.tenantId, 
+            config.authConfig?.scopes,
+            config.authConfig?.useBroker ?? true
+          );
 
           headers['Authorization'] = `Bearer ${token}`;
 

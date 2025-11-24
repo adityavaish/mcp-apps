@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { KustoService } from "../services/kustoService";
+import { KustoService } from "../services/kustoService.js";
 
 // Tool to get schema for a specific table
 export const getTableSchemaTool = {

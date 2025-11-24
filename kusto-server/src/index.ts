@@ -2,9 +2,9 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 
-import { listTablesTool } from "./tools/list-tables";
-import { getTableSchemaTool } from "./tools/get-table-schema";
-import { executeQueryTool } from "./tools/execute-query";
+import { listTablesTool } from "./tools/list-tables.js";
+import { getTableSchemaTool } from "./tools/get-table-schema.js";
+import { executeQueryTool } from "./tools/execute-query.js";
 
 async function main() {
   try {

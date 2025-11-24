@@ -1,4 +1,13 @@
 import { KustoConnectionStringBuilder, Client as KustoClient } from "azure-kusto-data";
+import { useIdentityPlugin, InteractiveBrowserCredential } from "@azure/identity";
+import { nativeBrokerPlugin } from "@azure/identity-broker";
+import type { InteractiveBrowserCredentialNodeOptions } from "@azure/identity";
+
+// Initialize the broker plugin for WAM support
+useIdentityPlugin(nativeBrokerPlugin);
+
+// Kusto scope for authentication
+const KUSTO_SCOPE = "https://kusto.kusto.windows.net/.default";
 
 export interface TableSchema {
   TableName: string;
@@ -17,50 +26,45 @@ export interface TableInfo {
   }[];
 }
 
-interface CachedClient {
-  client: KustoClient;
-  database: string;
-  lastUsed: number;
-}
-
 export class KustoService {
-  private static clientCache: Map<string, CachedClient> = new Map();
-  
-  private static MAX_CACHE_SIZE = 10;
-  
-  private static CACHE_EXPIRATION_MS = 30 * 60 * 1000;
+  private static credential: InteractiveBrowserCredential | null = null;
 
-  private static createConnectionString(clusterUrl: string): any {
-    console.log("Using user prompt authentication. Please log in interactively.");
-    return KustoConnectionStringBuilder.withUserPrompt(clusterUrl);
+  private static getCredential(): InteractiveBrowserCredential {
+    if (!KustoService.credential) {
+      const browserOptions: InteractiveBrowserCredentialNodeOptions = {
+        brokerOptions: {
+          enabled: true,
+          parentWindowHandle: new Uint8Array(0),
+          useDefaultBrokerAccount: false,
+          legacyEnableMsaPassthrough: true
+        } as any,
+      };
+      
+      KustoService.credential = new InteractiveBrowserCredential(browserOptions);
+    }
+    return KustoService.credential;
   }
-  
-  private static cleanupCache(): void {
-    if (KustoService.clientCache.size <= KustoService.MAX_CACHE_SIZE) {
-      const now = Date.now();
-      for (const [url, cachedClient] of KustoService.clientCache.entries()) {
-        if (now - cachedClient.lastUsed > KustoService.CACHE_EXPIRATION_MS) {
-          console.log(`Removing expired cached client for ${url}`);
-          KustoService.clientCache.delete(url);
-        }
-      }
-      return;
+
+  private static async createConnectionString(clusterUrl: string): Promise<any> {
+    const credential = KustoService.getCredential();
+    
+    // Get a token to trigger authentication
+    console.log("Requesting authentication token...");
+    try {
+      const token = await credential.getToken(KUSTO_SCOPE);
+      console.log("✓ Authentication successful");
+    } catch (error: any) {
+      console.error("✗ Authentication failed:", error.message);
+      throw error;
     }
     
-    const entries = Array.from(KustoService.clientCache.entries())
-      .sort((a, b) => a[1].lastUsed - b[1].lastUsed);
-      
-    while (entries.length > KustoService.MAX_CACHE_SIZE) {
-      const [url] = entries.shift()!;
-      console.log(`Removing oldest cached client for ${url}`);
-      KustoService.clientCache.delete(url);
-    }
+    return KustoConnectionStringBuilder.withTokenCredential(clusterUrl, credential);
   }
 
   /**
-   * Get a cached client for a specific cluster URL and database, or create a new one
+   * Get a client for a specific cluster URL and database
    */
-  private static getClient(clusterUrl: string, database: string): KustoClient {
+  private static async getClient(clusterUrl: string, database: string): Promise<KustoClient> {
     if (!clusterUrl) {
       throw new Error("Cluster URL is required");
     }
@@ -70,32 +74,9 @@ export class KustoService {
     }
 
     try {
-      // Check if we already have a cached client for this cluster URL
-      const cachedClient = KustoService.clientCache.get(clusterUrl);
-      
-      if (cachedClient && cachedClient.database === database) {
-        console.log(`Using cached Kusto client for ${clusterUrl}`);
-        // Update the last used timestamp
-        cachedClient.lastUsed = Date.now();
-        return cachedClient.client;
-      }
-      
-      // No cached client found, create a new one
-      console.log(`Creating new Kusto client for ${clusterUrl}`);
-      const connectionString = KustoService.createConnectionString(clusterUrl);
-      const client = new KustoClient(connectionString);
-      
-      // Add to cache
-      KustoService.clientCache.set(clusterUrl, {
-        client: client,
-        database: database,
-        lastUsed: Date.now()
-      });
-      
-      // Clean up cache if needed
-      KustoService.cleanupCache();
-      
-      return client;
+      console.log(`Creating Kusto client for ${clusterUrl}`);
+      const connectionString = await KustoService.createConnectionString(clusterUrl);
+      return new KustoClient(connectionString);
     } catch (error: any) {
       console.error("Failed to get Kusto client:", error.message);
       throw new Error(`Failed to connect to Kusto: ${error.message}`);
@@ -107,7 +88,7 @@ export class KustoService {
    */
   public static async executeQuery(clusterUrl: string, database: string, query: string): Promise<any> {
     try {
-      const client = KustoService.getClient(clusterUrl, database);
+      const client = await KustoService.getClient(clusterUrl, database);
       const response = await client.execute(database, query);
       return response.primaryResults[0].toJSON();
     } catch (error: any) {
