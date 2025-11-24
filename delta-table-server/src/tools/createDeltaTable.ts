@@ -7,8 +7,21 @@ import { promisify } from 'util';
 
 const execAsync = promisify(exec);
 
-// Schema definition for field types
-const FieldSchema = z.object({
+// Define base field type for recursion
+type FieldType = {
+  name: string;
+  type: 'string' | 'int' | 'long' | 'double' | 'float' | 'boolean' | 'date' | 'timestamp' | 'binary' | 'decimal' | 'array' | 'struct' | 'map';
+  nullable?: boolean;
+  elementType?: string;
+  fields?: FieldType[];
+  keyType?: string;
+  valueType?: string;
+  precision?: number;
+  scale?: number;
+};
+
+// Schema definition for field types with proper recursion
+const FieldSchema: z.ZodType<FieldType> = z.lazy(() => z.object({
   name: z.string().describe('The name of the field'),
   type: z.enum([
     'string', 'int', 'long', 'double', 'float', 'boolean', 
@@ -19,14 +32,14 @@ const FieldSchema = z.object({
   // For array types
   elementType: z.string().optional().describe('For array type: the type of array elements (e.g., "string", "int")'),
   // For struct types
-  fields: z.array(z.any()).optional().describe('For struct type: array of nested field definitions'),
+  fields: z.array(FieldSchema).optional().describe('For struct type: array of nested field definitions'),
   // For map types
   keyType: z.string().optional().describe('For map type: the type of map keys'),
   valueType: z.string().optional().describe('For map type: the type of map values'),
   // For decimal type
   precision: z.number().optional().describe('For decimal type: precision (total digits)'),
   scale: z.number().optional().describe('For decimal type: scale (digits after decimal)')
-});
+}));
 
 const CreateDeltaTableArgsSchema = z.object({
   tablePath: z.string().describe('The path to the delta table (e.g., data/tables/my-table.delta)'),
@@ -79,14 +92,23 @@ export const createDeltaTableTool = {
         case 'array':
           const elementType = field.elementType || 'string';
           let elementTypeCode = '';
-          switch (elementType) {
-            case 'string': elementTypeCode = 'pa.string()'; break;
-            case 'int': elementTypeCode = 'pa.int32()'; break;
-            case 'long': elementTypeCode = 'pa.int64()'; break;
-            case 'double': elementTypeCode = 'pa.float64()'; break;
-            case 'float': elementTypeCode = 'pa.float32()'; break;
-            case 'boolean': elementTypeCode = 'pa.bool_()'; break;
-            default: elementTypeCode = 'pa.string()';
+          
+          // Check if elementType is 'struct' and we have fields defined
+          if (elementType === 'struct' && field.fields && field.fields.length > 0) {
+            // Build the struct type for array elements
+            const arrayStructFields = field.fields.map((f: any) => buildPyArrowField(f, indent + '    ')).join(',\n' + indent + '    ');
+            elementTypeCode = `pa.struct([\n${indent}    ${arrayStructFields}\n${indent}])`;
+          } else {
+            // Handle primitive element types
+            switch (elementType) {
+              case 'string': elementTypeCode = 'pa.string()'; break;
+              case 'int': elementTypeCode = 'pa.int32()'; break;
+              case 'long': elementTypeCode = 'pa.int64()'; break;
+              case 'double': elementTypeCode = 'pa.float64()'; break;
+              case 'float': elementTypeCode = 'pa.float32()'; break;
+              case 'boolean': elementTypeCode = 'pa.bool_()'; break;
+              default: elementTypeCode = 'pa.string()';
+            }
           }
           return `pa.field('${field.name}', pa.list_(${elementTypeCode}), nullable=${nullable})`;
         case 'struct':
@@ -163,7 +185,14 @@ try:
         print(f"  - {field.name}: {field.type} (nullable={field.nullable})")
     
     # Create an empty table with the schema
-    empty_table = pa.Table.from_pydict({}, schema=schema)
+    # Create empty arrays for each field in the schema
+    arrays = []
+    for field in schema:
+        # Create an empty array with the correct type
+        arrays.append(pa.array([], type=field.type))
+    
+    # Create table from arrays
+    empty_table = pa.Table.from_arrays(arrays, schema=schema)
     
     # Prepare configuration
     config = {}
