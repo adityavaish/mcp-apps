@@ -1,35 +1,48 @@
 import { DataLakeServiceClient } from "@azure/storage-file-datalake";
-import { DefaultAzureCredential } from "@azure/identity";
 import * as parquet from "@dsnp/parquetjs";
 import * as fs from "fs";
 import * as path from "path";
-import { v4 as uuidv4 } from "uuid";
 import { ArrowDeltaService } from "./arrowDeltaService.js";
+import { getAccessToken } from "./token-manager.js";
 
 export interface TestRecord {
   [key: string]: any;
 }
 
 export class DeltaTableService {
-  private client: DataLakeServiceClient;
   private containerName: string;
+  private accountName: string;
   private arrowService: ArrowDeltaService;
+  private clientId?: string;
+  private tenantId?: string;
 
   constructor() {
-    const accountName = process.env.AZURE_STORAGE_ACCOUNT_NAME;
-    const containerName = process.env.AZURE_STORAGE_CONTAINER_NAME;
+    this.accountName = process.env.AZURE_STORAGE_ACCOUNT_NAME || "";
+    this.containerName = process.env.AZURE_STORAGE_CONTAINER_NAME || "";
+    this.clientId = process.env.AZURE_CLIENT_ID;
+    this.tenantId = process.env.AZURE_TENANT_ID;
 
-    if (!accountName) {
+    if (!this.accountName) {
       throw new Error("AZURE_STORAGE_ACCOUNT_NAME environment variable is required");
     }
-    if (!containerName) {
+    if (!this.containerName) {
       throw new Error("AZURE_STORAGE_CONTAINER_NAME environment variable is required");
     }
 
-    this.containerName = containerName;
-    const accountUrl = `https://${accountName}.dfs.core.windows.net`;
-    this.client = new DataLakeServiceClient(accountUrl, new DefaultAzureCredential());
     this.arrowService = new ArrowDeltaService();
+  }
+
+  private async getDataLakeServiceClient(): Promise<DataLakeServiceClient> {
+    const token = await getAccessToken(
+      this.clientId,
+      this.tenantId,
+      ["https://storage.azure.com/.default"],
+      true
+    );
+    const credential = {
+      getToken: async () => ({ token, expiresOnTimestamp: Date.now() + 3600000 })
+    };
+    return new DataLakeServiceClient(`https://${this.accountName}.dfs.core.windows.net`, credential as any);
   }
 
   /**
@@ -84,7 +97,8 @@ export class DeltaTableService {
 
   private async readFromTableParquet(tablePath: string): Promise<TestRecord[]> {
     try {
-      const fileSystemClient = this.client.getFileSystemClient(this.containerName);
+      const client = await this.getDataLakeServiceClient();
+      const fileSystemClient = client.getFileSystemClient(this.containerName);
       const deltaLogPath = `${tablePath}/_delta_log`;
 
       // Read the latest transaction log to get list of files

@@ -40,10 +40,6 @@ import { getPRTestImpactTool } from "./tools/get-pr-test-impact";
 
 import { getRepositoryContextTool } from "./tools/get-repository-context";
 
-// FOR TESTING ONLY: Uncomment the following lines to use a specific access token
-// import { getAccessToken } from "./utils/token-manager";
-// const accessToken = getAccessToken();
-
 // Create server instance
 const server = new McpServer({
     name: "azure-devops-mcp-server",

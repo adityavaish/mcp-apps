@@ -3,7 +3,7 @@ import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 
 import { startPipelineTool, getPipelineStatusTool, cancelPipelineTool, listPipelinesTool } from "./tools/pipeline-tools.js";
-import { createDeltaTableTool } from "./tools/delta-table-tools.js";
+import { createDeltaTableTool } from "./tools/delta-table-tools";
 
 async function main() {
   try {

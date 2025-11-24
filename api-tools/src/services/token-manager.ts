@@ -1,6 +1,9 @@
-import { PublicClientApplication, Configuration, InteractiveRequest } from "@azure/msal-node";
-import { NativeBrokerPlugin } from "@azure/msal-node-extensions";
+import { InteractiveBrowserCredential, useIdentityPlugin } from "@azure/identity";
+import { nativeBrokerPlugin } from "@azure/identity-broker";
 import * as dotenv from "dotenv";
+
+// Initialize the broker plugin for WAM support
+useIdentityPlugin(nativeBrokerPlugin);
 
 dotenv.config();
 
@@ -17,16 +20,12 @@ function createCacheKey(clientId: string, tenantId: string): string {
   return `${clientId}|${tenantId}`;
 }
 
-export async function getAccessToken(clientId: string | undefined, tenantId: string | undefined, scopes: string[] | undefined): Promise<string> {
+export async function getAccessToken(clientId: string | undefined, tenantId: string | undefined, scopes: string[] | undefined, useBroker: boolean = true): Promise<string> {
   const now = Date.now();
 
   // Resolve clientId and tenantId, using environment variables as fallback
   const resolvedClientId = clientId || process.env.AZURE_CLIENT_ID || '';
   const resolvedTenantId = tenantId || process.env.AZURE_TENANT_ID || 'common';
-
-  if (!resolvedClientId) {
-    throw new Error("Client ID is required. Provide it as a parameter or set AZURE_CLIENT_ID environment variable.");
-  }
 
   // Create cache key for this client+tenant combination
   const cacheKey = createCacheKey(resolvedClientId, resolvedTenantId);
@@ -37,50 +36,47 @@ export async function getAccessToken(clientId: string | undefined, tenantId: str
     return cachedEntry.token;
   }
 
-  // Try with native broker first
   try {
-    return await acquireTokenWithNativeBroker(resolvedClientId, resolvedTenantId, scopes, cacheKey);
-  } catch (nativeBrokerError) {
-    console.log("Native broker failed, falling back to standard flow:", nativeBrokerError);
-    throw new Error(`Failed to acquire access token: ${nativeBrokerError instanceof Error ? nativeBrokerError.message : 'Unknown error'}`);
+    const credentialOptions: any = {
+      clientId: resolvedClientId,
+      tenantId: resolvedTenantId,
+      loginStyle: "popup"
+    };
+
+    // Add broker authentication if requested
+    if (useBroker) {
+      console.log("Using Windows broker authentication (WAM) for interactive login");
+      credentialOptions.brokerOptions = {
+        enabled: true,
+        parentWindowHandle: new Uint8Array(0), // Empty Uint8Array will use the active window
+        useDefaultBrokerAccount: false, // Try default account before falling back to interactive
+        legacyEnableMsaPassthrough: true // Set to true if MSA account passthrough is needed
+      };
+    } else {
+      console.log("Using standard interactive browser authentication (WAM disabled)");
+    }
+
+    const credential = new InteractiveBrowserCredential(credentialOptions);
+
+    const tokenResponse = await credential.getToken([`${resolvedClientId}/.default`].concat(scopes ? scopes : []));
+
+    if (!tokenResponse || !tokenResponse.token) {
+      throw new Error("Failed to acquire Azure DevOps token");
+    }
+
+    // Set expiration time (expiresOn is in seconds from epoch)
+    const expirationTime = tokenResponse.expiresOnTimestamp;
+    const expiresAt = expirationTime - (5 * 60 * 1000); // Token lifetime minus 5 minute safety buffer
+
+    // Store the token in cache using the client+tenant key
+    tokenCache.set(cacheKey, {
+      token: tokenResponse.token,
+      expiresAt: expiresAt
+    });
+
+    return tokenResponse.token;
+  } catch (error) {
+    console.error("Error acquiring token:", error);
+    throw new Error("Failed to acquire Azure DevOps access token");
   }
-}
-
-async function acquireTokenWithNativeBroker(clientId: string, tenantId: string, scopes: string[] | undefined, cacheKey: string): Promise<string> {
-  const msalConfig: Configuration = {
-    auth: {
-      clientId: clientId,
-      authority: `https://login.microsoftonline.com/${tenantId}`
-    },
-    broker: {
-      nativeBrokerPlugin: new NativeBrokerPlugin()
-    },
-  };
-
-  const pca = new PublicClientApplication(msalConfig);
-
-  // Interactive acquisition with native broker
-  const interactiveRequest: InteractiveRequest = {
-    scopes: scopes || [`${clientId}/.default`],
-    openBrowser: async (url: string): Promise<void> => {
-      const { default: open } = await import('open');
-      await open(url);
-    },
-  };
-
-  const tokenResponse = await pca.acquireTokenInteractive(interactiveRequest);
-
-  if (!tokenResponse || !tokenResponse.accessToken) {
-    throw new Error("Failed to acquire token with native broker");
-  }
-
-  const expirationTime = tokenResponse.expiresOn?.getTime()!;
-  const expiresAt = expirationTime - (5 * 60 * 1000);
-
-  tokenCache.set(cacheKey, {
-    token: tokenResponse.accessToken,
-    expiresAt: expiresAt
-  });
-
-  return tokenResponse.accessToken;
 }

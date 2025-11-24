@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { SynapseService } from "../services/synapseService.js";
+import { SynapseService } from "../services/synapseService";
 
 // Common connection parameters schema
 const connectionParametersSchema = {

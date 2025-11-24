@@ -4,6 +4,7 @@ import * as path from 'path';
 import * as os from 'os';
 import { exec } from 'child_process';
 import { promisify } from 'util';
+import { getAccessToken } from '../services/token-manager.js';
 
 const execAsync = promisify(exec);
 
@@ -21,12 +22,12 @@ type FieldType = {
 };
 
 // Schema definition for field types with proper recursion
-const FieldSchema: z.ZodType<FieldType> = z.lazy(() => z.object({
+const FieldSchema: z.ZodType<any> = z.lazy(() => z.object({
   name: z.string().describe('The name of the field'),
   type: z.enum([
     'string', 'int', 'long', 'double', 'float', 'boolean', 
     'date', 'timestamp', 'binary', 'decimal',
-    'array', 'struct', 'map'
+    'array', 'struct', 'map', 'dynamic'
   ]).describe('The data type of the field'),
   nullable: z.boolean().default(true).describe('Whether the field can be null'),
   // For array types
@@ -92,7 +93,7 @@ export const createDeltaTableTool = {
         case 'array':
           const elementType = field.elementType || 'string';
           let elementTypeCode = '';
-          
+
           // Check if elementType is 'struct' and we have fields defined
           if (elementType === 'struct' && field.fields && field.fields.length > 0) {
             // Build the struct type for array elements
@@ -134,15 +135,26 @@ export const createDeltaTableTool = {
             case 'double': valueTypeCode = 'pa.float64()'; break;
           }
           return `pa.field('${field.name}', pa.map_(${keyTypeCode}, ${valueTypeCode}), nullable=${nullable})`;
+        case 'dynamic':
+          // Dynamic type in Kusto is stored as string in Delta Lake (JSON format)
+          return `pa.field('${field.name}', pa.string(), nullable=${nullable})`;
         default:
           return `pa.field('${field.name}', pa.string(), nullable=${nullable})`;
       }
     };
 
+    // Get access token using WAM broker
+    const accessToken = await getAccessToken(
+      undefined, // clientId
+      undefined, // tenantId
+      ['https://storage.azure.com/.default'],
+      true // useBroker
+    );
+
     // Build schema fields
     const schemaFields = schema.map(field => buildPyArrowField(field, '    ')).join(',\n    ');
 
-    // Generate Python script
+    // Generate Python script with bearer token
     const pythonScript = `
 import sys
 import json
@@ -157,13 +169,15 @@ table_path = "${tablePath}"
 partition_by = ${partitionBy ? JSON.stringify(partitionBy) : 'None'}
 table_description = ${description ? `"${description}"` : 'None'}
 table_properties = ${properties ? JSON.stringify(properties) : '{}'}
+bearer_token = "${'{BEARER_TOKEN}'}"
 print("Creating new Delta table with schema...")
 print(f"Target: abfss://{container}@{storage_account}.dfs.core.windows.net/{table_path}")
 # Build the storage path
 storage_path = f"abfss://{container}@{storage_account}.dfs.core.windows.net/{table_path}"
-# Storage options for Azure authentication
+# Storage options for Azure authentication with bearer token
 storage_options = {
-    "use_azure_cli": "true"
+    "bearer_token": bearer_token,
+    "use_fabric_endpoint": "false"
 }
 try:
     # Check if table already exists
@@ -184,8 +198,7 @@ try:
     for field in schema:
         print(f"  - {field.name}: {field.type} (nullable={field.nullable})")
     
-    # Create an empty table with the schema
-    # Create empty arrays for each field in the schema
+       # Create empty arrays for each field in the schema
     arrays = []
     for field in schema:
         # Create an empty array with the correct type
@@ -233,8 +246,11 @@ except Exception as e:
 `;
 
     try {
+      // Replace the token placeholder in the script
+      const finalScript = pythonScript.replace('{BEARER_TOKEN}', accessToken);
+
       // Write the Python script to a temporary file
-      fs.writeFileSync(scriptPath, pythonScript);
+      fs.writeFileSync(scriptPath, finalScript);
 
       // Execute the Python script
       const { stdout, stderr } = await execAsync(`python "${scriptPath}"`, {
@@ -303,7 +319,7 @@ except Exception as e:
 
       errorMessage += `Troubleshooting tips:\n`;
       errorMessage += `1. Ensure the table doesn't already exist at the specified path\n`;
-      errorMessage += `2. Verify Azure CLI authentication: az login\n`;
+      errorMessage += `2. Verify Azure authentication (WAM broker will prompt for login)\n`;
       errorMessage += `3. Check that you have write permissions to the storage account\n`;
       errorMessage += `4. Ensure Python and deltalake library are installed: pip install deltalake\n`;
       errorMessage += `5. Verify schema definition is valid (check complex types like arrays/structs)\n`;

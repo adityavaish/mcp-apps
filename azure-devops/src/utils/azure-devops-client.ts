@@ -4,7 +4,7 @@ import * as GitApi from "azure-devops-node-api/GitApi";
 import { CoreApi } from "azure-devops-node-api/CoreApi";
 import { BuildApi } from "azure-devops-node-api/BuildApi";
 import { ReleaseApi } from "azure-devops-node-api/ReleaseApi";
-import { getAccessToken } from "./token-manager";
+import { getAccessToken } from "../services/token-manager";
 import { PipelinesApi } from "azure-devops-node-api/PipelinesApi";
 
 let connection: azdev.WebApi | null = null;

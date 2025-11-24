@@ -22,10 +22,12 @@
   },
   "dependencies": {
     "@azure/identity": "^4.0.1",
+    "@azure/identity-broker": "^1.1.0",
     "@azure/storage-file-datalake": "^12.17.0",
     "@dsnp/parquetjs": "^1.8.7",
     "@modelcontextprotocol/sdk": "^1.9.0",
     "apache-arrow": "^17.0.0",
+    "dotenv": "^16.4.5",
     "parquet-wasm": "^0.6.1",
     "vscode-mcp-server": "^0.2.0",
     "zod": "^3.24.2"
