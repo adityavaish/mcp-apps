@@ -51,10 +51,6 @@ const server = new McpServer({
     name: "azure-devops-mcp-server",
     description: "Azure DevOps MCP Server",
     version: "1.0.0",
-    capabilities: {
-        resources: {},
-        tools: {},
-    },
 });
 
 // Register tools

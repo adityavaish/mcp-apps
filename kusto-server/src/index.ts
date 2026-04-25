@@ -12,10 +12,6 @@ async function main() {
       name: process.env.MCP_SERVER_NAME || "kusto-mcp-server",
       description: "Kusto MCP Server for Azure Data Explorer integration",
       version: process.env.MCP_SERVER_VERSION || "1.0.0",
-      capabilities: {
-        resources: {},
-        tools: {},
-      },
     });
 
     server.tool(

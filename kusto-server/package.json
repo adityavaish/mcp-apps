@@ -22,6 +22,8 @@
     "token": "npx vsts-npm-auth -config .npmrc"
   },
   "dependencies": {
+    "@azure/identity": "^4.0.0",
+    "@azure/identity-broker": "^1.4.0",
     "@modelcontextprotocol/sdk": "^1.13.2",
     "azure-kusto-data": "^7.0.0",
     "azure-kusto-ingest": "^7.0.0",

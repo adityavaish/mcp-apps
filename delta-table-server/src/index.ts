@@ -12,10 +12,6 @@ import { createDeltaTableTool } from "./tools/createDeltaTable.js";
 const server = new McpServer({
   name: "delta-table-server",
   version: "1.0.0",
-  capabilities: {
-    resources: {},
-    tools: {},
-  },
 });
 
 // Register simplified tools
