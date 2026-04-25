@@ -40,6 +40,12 @@ import { getPRTestImpactTool } from "./tools/get-pr-test-impact";
 
 import { getRepositoryContextTool } from "./tools/get-repository-context";
 
+// Import PR review-action tools
+import { setPullRequestVoteTool } from "./tools/git-set-pr-vote";
+import { listPullRequestThreadsTool } from "./tools/git-list-pr-threads";
+import { addPullRequestCommentTool } from "./tools/git-add-pr-comment";
+import { replyPullRequestCommentTool } from "./tools/git-reply-pr-comment";
+
 // Create server instance
 const server = new McpServer({
     name: "azure-devops-mcp-server",
@@ -250,6 +256,35 @@ server.tool(
     getRepositoryContextTool.description,
     getRepositoryContextTool.parameters,
     getRepositoryContextTool.handler
+);
+
+// Register PR review-action tools (vote / comment / reply)
+server.tool(
+    setPullRequestVoteTool.name,
+    setPullRequestVoteTool.description,
+    setPullRequestVoteTool.parameters,
+    setPullRequestVoteTool.handler
+);
+
+server.tool(
+    listPullRequestThreadsTool.name,
+    listPullRequestThreadsTool.description,
+    listPullRequestThreadsTool.parameters,
+    listPullRequestThreadsTool.handler
+);
+
+server.tool(
+    addPullRequestCommentTool.name,
+    addPullRequestCommentTool.description,
+    addPullRequestCommentTool.parameters,
+    addPullRequestCommentTool.handler
+);
+
+server.tool(
+    replyPullRequestCommentTool.name,
+    replyPullRequestCommentTool.description,
+    replyPullRequestCommentTool.parameters,
+    replyPullRequestCommentTool.handler
 );
 
 // Start the server

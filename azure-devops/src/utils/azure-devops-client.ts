@@ -49,6 +49,21 @@ export async function getReleaseApi(organizationUrl: string): Promise<ReleaseApi
     return await connection.getReleaseApi();
 }
 
+/**
+ * Returns the unique identifier (GUID) of the user the access token is issued to.
+ * Useful when an Azure DevOps API call requires a reviewerId / identity reference
+ * (for example, casting a vote on a pull request) and the caller wants to act as themselves.
+ */
+export async function getAuthenticatedUserId(organizationUrl: string): Promise<string> {
+    const connection = await getAzureDevOpsConnection(organizationUrl);
+    const connectionData = await connection.connect();
+    const userId = connectionData?.authenticatedUser?.id;
+    if (!userId) {
+        throw new Error("Unable to determine authenticated user id from Azure DevOps connection.");
+    }
+    return userId;
+}
+
 export async function getPipelinesApi(organizationUrl: string): Promise<PipelinesApi> {
     const connection = await getAzureDevOpsConnection(organizationUrl);
     return await connection.getPipelinesApi();
