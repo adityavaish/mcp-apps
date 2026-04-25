@@ -11,10 +11,6 @@ async function main() {
       name: process.env.MCP_SERVER_NAME || "pdf-tools-mcp-server",
       description: "PDF Tools MCP Server for document processing and analysis",
       version: process.env.MCP_SERVER_VERSION || "1.0.0",
-      capabilities: {
-        resources: {},
-        tools: {},
-      },
     });
 
     server.tool(

@@ -14,10 +14,6 @@ async function main() {
       name: process.env.MCP_SERVER_NAME || "api-tools-mcp-server",
       description: "API Tools MCP Server for API integration",
       version: process.env.MCP_SERVER_VERSION || "1.0.0",
-      capabilities: {
-        resources: {},
-        tools: {},
-      },
     });
 
     // Register the API call tool

@@ -11,10 +11,6 @@ async function main() {
       name: process.env.MCP_SERVER_NAME || "synapse-mcp-server",
       description: "Azure Synapse MCP Server for ADLS Gen2 and pipeline operations",
       version: process.env.MCP_SERVER_VERSION || "1.0.0",
-      capabilities: {
-        resources: {},
-        tools: {},
-      },
     });
 
     // Synapse Pipeline Tools
