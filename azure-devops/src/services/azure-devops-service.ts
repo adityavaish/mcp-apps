@@ -20,7 +20,7 @@ export class AzureDevOpsService {
             // Decode project name if it's URL-encoded
             const decodedProject = decodeURIComponent(project);
             if (decodedProject !== project) {
-                console.log(`Project name is URL-encoded. Decoded: ${decodedProject}`);    
+                console.error(`Project name is URL-encoded. Decoded: ${decodedProject}`);    
                 project = decodedProject;
             }
             
@@ -89,7 +89,7 @@ export class AzureDevOpsService {
             // Decode project name if it's URL-encoded
             const decodedProject = decodeURIComponent(project);
             if (decodedProject !== project) {
-                console.log(`Project name is URL-encoded. Decoded: ${decodedProject}`);
+                console.error(`Project name is URL-encoded. Decoded: ${decodedProject}`);
                 project = decodedProject;
             }
             
@@ -247,7 +247,7 @@ export class AzureDevOpsService {
             // Decode project name if it's URL-encoded
             const decodedProject = decodeURIComponent(project);
             if (decodedProject !== project) {
-                console.log(`Project name is URL-encoded. Decoded: ${decodedProject}`);
+                console.error(`Project name is URL-encoded. Decoded: ${decodedProject}`);
                 project = decodedProject;
             }
             
@@ -458,7 +458,7 @@ export class AzureDevOpsService {
             // Decode project name if it's URL-encoded
             const decodedProject = decodeURIComponent(project);
             if (decodedProject !== project) {
-                console.log(`Project name is URL-encoded. Decoded: ${decodedProject}`);
+                console.error(`Project name is URL-encoded. Decoded: ${decodedProject}`);
                 project = decodedProject;
             }
             
