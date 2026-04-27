@@ -54,7 +54,7 @@ jobs:
       - name: Set package version from GitHub release
         run: |
           VERSION=${GITHUB_REF#refs/tags/}
-          npm version --no-git-tag-version "$VERSION"
+          npm version --no-git-tag-version --allow-same-version "$VERSION"
         working-directory: ${{ matrix.package }}
       - run: npm publish
         working-directory: ${{ matrix.package }}
