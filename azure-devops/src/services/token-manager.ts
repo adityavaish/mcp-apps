@@ -1,17 +1,84 @@
-import { InteractiveBrowserCredential, useIdentityPlugin } from "@azure/identity";
-import { nativeBrokerPlugin } from "@azure/identity-broker";
+import {
+    AzureCliCredential,
+    AzureDeveloperCliCredential,
+    ChainedTokenCredential,
+    DeviceCodeCredential,
+    InteractiveBrowserCredential,
+    TokenCredential,
+    VisualStudioCodeCredential,
+    useIdentityPlugin,
+} from "@azure/identity";
 import * as dotenv from "dotenv";
-
-// Initialize the broker plugin for WAM support
-useIdentityPlugin(nativeBrokerPlugin);
 
 dotenv.config();
 
 const azureDevOpsScopes = ["https://app.vssps.visualstudio.com/.default"];
+const tenantId = process.env.TENANT_ID || "common";
+
+// MCP servers communicate over stdout (JSON-RPC). All diagnostics MUST go to
+// stderr or they will corrupt the protocol stream.
+const log = (...args: unknown[]) => console.error("[azure-devops-mcp]", ...args);
 
 let cachedToken: string | null = null;
 let tokenExpiresAt: number = 0;
 let authenticationPromise: Promise<string> | null = null;
+let credentialChain: TokenCredential | null = null;
+
+// Lazily build a platform-aware credential chain:
+//   1. AzureCliCredential          (`az login`)               - all platforms
+//   2. AzureDeveloperCliCredential (`azd auth login`)         - all platforms
+//   3. VisualStudioCodeCredential  (VS Code Azure sign-in)    - all platforms
+//   4. InteractiveBrowserCredential + WAM broker              - Windows only
+//   5. DeviceCodeCredential        (prints code to stderr)    - all platforms
+function buildCredential(): TokenCredential {
+    if (credentialChain) {
+        return credentialChain;
+    }
+
+    const credentials: TokenCredential[] = [
+        new AzureCliCredential({ tenantId, additionallyAllowedTenants: ["*"] }),
+        new AzureDeveloperCliCredential({ tenantId, additionallyAllowedTenants: ["*"] }),
+        new VisualStudioCodeCredential({ tenantId, additionallyAllowedTenants: ["*"] }),
+    ];
+
+    if (process.platform === "win32") {
+        try {
+            // Load the WAM broker only on Windows; the native binding does not
+            // exist for macOS/Linux and requiring it there throws.
+            // eslint-disable-next-line @typescript-eslint/no-var-requires
+            const { nativeBrokerPlugin } = require("@azure/identity-broker");
+            useIdentityPlugin(nativeBrokerPlugin);
+            credentials.push(
+                new InteractiveBrowserCredential({
+                    additionallyAllowedTenants: ["*"],
+                    tenantId,
+                    brokerOptions: {
+                        enabled: true,
+                        parentWindowHandle: new Uint8Array(0),
+                        useDefaultBrokerAccount: false,
+                        legacyEnableMsaPassthrough: true,
+                    },
+                } as any),
+            );
+        } catch (err) {
+            log("WAM broker unavailable, skipping:", (err as Error).message);
+        }
+    }
+
+    // Last-resort interactive flow that works in any terminal.
+    credentials.push(
+        new DeviceCodeCredential({
+            tenantId,
+            additionallyAllowedTenants: ["*"],
+            userPromptCallback: (info) => {
+                log(`To sign in, open ${info.verificationUri} and enter code ${info.userCode}`);
+            },
+        }),
+    );
+
+    credentialChain = new ChainedTokenCredential(...credentials);
+    return credentialChain;
+}
 
 export async function getAccessToken(): Promise<string> {
     const now = Date.now();
@@ -19,51 +86,31 @@ export async function getAccessToken(): Promise<string> {
         return cachedToken;
     }
 
-    // If authentication is already in progress, wait for it
     if (authenticationPromise) {
-        console.log("Authentication already in progress, waiting...");
+        log("Authentication already in progress, waiting...");
         return authenticationPromise;
     }
 
-    // Start authentication and store the promise
     authenticationPromise = (async () => {
         try {
-            console.log("Using Windows broker authentication (WAM) for Azure DevOps interactive login");
-            const credentialOptions: any = {
-                additionallyAllowedTenants: ["*"],
-                loginStyle: "popup",
-                brokerOptions: {
-                    enabled: true,
-                    parentWindowHandle: new Uint8Array(0), // Empty Uint8Array will use the active window
-                    useDefaultBrokerAccount: false, // Try default account before falling back to interactive
-                    legacyEnableMsaPassthrough: true // Set to true if MSA account passthrough is needed
-                }
-            };
-
-            const credential = new InteractiveBrowserCredential(credentialOptions);
-
-            const tokenResponse = await credential.getToken(
-                azureDevOpsScopes.join(" "), {
-                tenantId: process.env.TENANT_ID || "common",
+            const credential = buildCredential();
+            const tokenResponse = await credential.getToken(azureDevOpsScopes.join(" "), {
+                tenantId,
             });
 
             if (!tokenResponse || !tokenResponse.token) {
                 throw new Error("Failed to acquire Azure DevOps token");
             }
 
-            // Store the token in cache
             cachedToken = tokenResponse.token;
-
-            // Set expiration time (expiresOn is in seconds from epoch)
-            const expirationTime = tokenResponse.expiresOnTimestamp;
-            tokenExpiresAt = expirationTime - (5 * 60 * 1000); // Token lifetime minus 5 minute safety buffer
-
+            tokenExpiresAt = tokenResponse.expiresOnTimestamp - 5 * 60 * 1000;
             return cachedToken;
         } catch (error) {
-            console.error("Error acquiring token:", error);
-            throw new Error("Failed to acquire Azure DevOps access token");
+            log("Error acquiring token:", (error as Error).message ?? error);
+            throw new Error(
+                "Failed to acquire Azure DevOps access token. Try `az login` (recommended), `azd auth login`, or sign in to the Azure VS Code extension.",
+            );
         } finally {
-            // Clear the promise after completion (success or failure)
             authenticationPromise = null;
         }
     })();

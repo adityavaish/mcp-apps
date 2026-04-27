@@ -37,7 +37,7 @@ export const gitCommandTool = {
             const cwd = workingDirectory || repositoryPath;
             const fullCommand = `git ${command}`;
 
-            console.log(`Executing '${fullCommand}' in directory: ${cwd}`);
+            console.error(`Executing '${fullCommand}' in directory: ${cwd}`);
             const { stdout, stderr } = await execPromise(fullCommand, { cwd });
 
             if (stderr && stderr.trim() !== '') {
