@@ -13,7 +13,13 @@ import * as dotenv from "dotenv";
 dotenv.config();
 
 const azureDevOpsScopes = ["https://app.vssps.visualstudio.com/.default"];
-const tenantId = process.env.TENANT_ID || "common";
+// Only pass a tenantId when one is explicitly set. Forcing `common` (the
+// previous default) makes AzureCliCredential / VSCodeCredential fail and
+// causes the chain to fall through to interactive auth, which pops the WAM
+// account picker even when `az login` is valid.
+const tenantId = process.env.AZURE_TENANT_ID || process.env.TENANT_ID;
+// Background MCP processes have no UI; default to non-interactive only.
+const allowInteractive = process.env.MCP_ALLOW_INTERACTIVE_AUTH === "1";
 
 // MCP servers communicate over stdout (JSON-RPC). All diagnostics MUST go to
 // stderr or they will corrupt the protocol stream.
@@ -35,13 +41,17 @@ function buildCredential(): TokenCredential {
         return credentialChain;
     }
 
+    const tenantOpts = tenantId
+        ? { tenantId, additionallyAllowedTenants: ["*"] }
+        : { additionallyAllowedTenants: ["*"] };
+
     const credentials: TokenCredential[] = [
-        new AzureCliCredential({ tenantId, additionallyAllowedTenants: ["*"] }),
-        new AzureDeveloperCliCredential({ tenantId, additionallyAllowedTenants: ["*"] }),
-        new VisualStudioCodeCredential({ tenantId, additionallyAllowedTenants: ["*"] }),
+        new AzureCliCredential(tenantOpts),
+        new AzureDeveloperCliCredential(tenantOpts),
+        new VisualStudioCodeCredential(tenantOpts),
     ];
 
-    if (process.platform === "win32") {
+    if (allowInteractive && process.platform === "win32") {
         try {
             // Load the WAM broker only on Windows; the native binding does not
             // exist for macOS/Linux and requiring it there throws.
@@ -51,7 +61,7 @@ function buildCredential(): TokenCredential {
             credentials.push(
                 new InteractiveBrowserCredential({
                     additionallyAllowedTenants: ["*"],
-                    tenantId,
+                    ...(tenantId ? { tenantId } : {}),
                     brokerOptions: {
                         enabled: true,
                         parentWindowHandle: new Uint8Array(0),
@@ -66,15 +76,17 @@ function buildCredential(): TokenCredential {
     }
 
     // Last-resort interactive flow that works in any terminal.
-    credentials.push(
-        new DeviceCodeCredential({
-            tenantId,
-            additionallyAllowedTenants: ["*"],
-            userPromptCallback: (info) => {
-                log(`To sign in, open ${info.verificationUri} and enter code ${info.userCode}`);
-            },
-        }),
-    );
+    if (allowInteractive) {
+        credentials.push(
+            new DeviceCodeCredential({
+                ...(tenantId ? { tenantId } : {}),
+                additionallyAllowedTenants: ["*"],
+                userPromptCallback: (info) => {
+                    log(`To sign in, open ${info.verificationUri} and enter code ${info.userCode}`);
+                },
+            }),
+        );
+    }
 
     credentialChain = new ChainedTokenCredential(...credentials);
     return credentialChain;

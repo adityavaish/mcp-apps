@@ -1,10 +1,14 @@
 import { KustoConnectionStringBuilder, Client as KustoClient } from "azure-kusto-data";
-import { useIdentityPlugin, InteractiveBrowserCredential } from "@azure/identity";
-import { nativeBrokerPlugin } from "@azure/identity-broker";
-import type { InteractiveBrowserCredentialNodeOptions } from "@azure/identity";
+import {
+  AzureCliCredential,
+  AzureDeveloperCliCredential,
+  ChainedTokenCredential,
+  DeviceCodeCredential,
+  TokenCredential,
+  VisualStudioCodeCredential,
+} from "@azure/identity";
 
-// Initialize the broker plugin for WAM support
-useIdentityPlugin(nativeBrokerPlugin);
+const log = (...args: unknown[]) => console.error("[kusto-mcp]", ...args);
 
 // Kusto scope for authentication
 const KUSTO_SCOPE = "https://kusto.kusto.windows.net/.default";
@@ -27,20 +31,30 @@ export interface TableInfo {
 }
 
 export class KustoService {
-  private static credential: InteractiveBrowserCredential | null = null;
+  private static credential: TokenCredential | null = null;
 
-  private static getCredential(): InteractiveBrowserCredential {
+  private static getCredential(): TokenCredential {
     if (!KustoService.credential) {
-      const browserOptions: InteractiveBrowserCredentialNodeOptions = {
-        brokerOptions: {
-          enabled: true,
-          parentWindowHandle: new Uint8Array(0),
-          useDefaultBrokerAccount: false,
-          legacyEnableMsaPassthrough: true
-        } as any,
-      };
-      
-      KustoService.credential = new InteractiveBrowserCredential(browserOptions);
+      // Prefer non-interactive sources first so background/headless MCP runs
+      // don't pop the WAM account picker when the user is already signed in.
+      const tenantId = process.env.AZURE_TENANT_ID || process.env.TENANT_ID;
+      const tenantOpts = tenantId
+        ? { tenantId, additionallyAllowedTenants: ["*"] }
+        : { additionallyAllowedTenants: ["*"] };
+
+      const credentials: TokenCredential[] = [
+        new AzureCliCredential(tenantOpts),
+        new AzureDeveloperCliCredential(tenantOpts),
+        new VisualStudioCodeCredential(tenantOpts),
+        new DeviceCodeCredential({
+          ...tenantOpts,
+          userPromptCallback: (info) => {
+            log(`To sign in, open ${info.verificationUri} and enter code ${info.userCode}`);
+          },
+        }),
+      ];
+
+      KustoService.credential = new ChainedTokenCredential(...credentials);
     }
     return KustoService.credential;
   }
@@ -49,12 +63,12 @@ export class KustoService {
     const credential = KustoService.getCredential();
     
     // Get a token to trigger authentication
-    console.log("Requesting authentication token...");
+    log("Requesting authentication token...");
     try {
-      const token = await credential.getToken(KUSTO_SCOPE);
-      console.log("✓ Authentication successful");
+      await credential.getToken(KUSTO_SCOPE);
+      log("Authentication successful");
     } catch (error: any) {
-      console.error("✗ Authentication failed:", error.message);
+      log("Authentication failed:", error.message);
       throw error;
     }
     
@@ -74,7 +88,7 @@ export class KustoService {
     }
 
     try {
-      console.log(`Creating Kusto client for ${clusterUrl}`);
+      log(`Creating Kusto client for ${clusterUrl}`);
       const connectionString = await KustoService.createConnectionString(clusterUrl);
       return new KustoClient(connectionString);
     } catch (error: any) {
