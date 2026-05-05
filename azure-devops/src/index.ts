@@ -46,6 +46,9 @@ import { listPullRequestThreadsTool } from "./tools/git-list-pr-threads";
 import { addPullRequestCommentTool } from "./tools/git-add-pr-comment";
 import { replyPullRequestCommentTool } from "./tools/git-reply-pr-comment";
 
+// Import search tools
+import { searchCodeTool, searchWorkItemsTool, searchWikiTool } from "./tools/search";
+
 // Create server instance
 const server = new McpServer({
     name: "azure-devops-mcp-server",
@@ -281,6 +284,28 @@ server.tool(
     replyPullRequestCommentTool.description,
     replyPullRequestCommentTool.parameters,
     replyPullRequestCommentTool.handler
+);
+
+// Register search tools (code / work items / wiki)
+server.tool(
+    searchCodeTool.name,
+    searchCodeTool.description,
+    searchCodeTool.parameters,
+    searchCodeTool.handler
+);
+
+server.tool(
+    searchWorkItemsTool.name,
+    searchWorkItemsTool.description,
+    searchWorkItemsTool.parameters,
+    searchWorkItemsTool.handler
+);
+
+server.tool(
+    searchWikiTool.name,
+    searchWikiTool.description,
+    searchWikiTool.parameters,
+    searchWikiTool.handler
 );
 
 // Start the server
