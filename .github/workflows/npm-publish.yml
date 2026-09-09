@@ -36,6 +36,10 @@ jobs:
     needs: build
     if: github.event_name == 'release'
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      # Required for npm trusted publishing (OIDC).
+      id-token: write
     strategy:
       matrix:
         package:
@@ -49,6 +53,8 @@ jobs:
         with:
           node-version: 23
           registry-url: https://registry.npmjs.org/
+      # Trusted publishing requires npm 11.5.1 or newer.
+      - run: npm install -g npm@latest
       - run: npm install
         working-directory: ${{ matrix.package }}
       - name: Set package version from GitHub release
@@ -58,5 +64,3 @@ jobs:
         working-directory: ${{ matrix.package }}
       - run: npm publish
         working-directory: ${{ matrix.package }}
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
