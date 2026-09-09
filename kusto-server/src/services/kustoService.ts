@@ -10,9 +10,6 @@ import {
 
 const log = (...args: unknown[]) => console.error("[kusto-mcp]", ...args);
 
-// Kusto scope for authentication
-const KUSTO_SCOPE = "https://kusto.kusto.windows.net/.default";
-
 export interface TableSchema {
   TableName: string;
   ColumnName: string;
@@ -59,19 +56,10 @@ export class KustoService {
     return KustoService.credential;
   }
 
-  private static async createConnectionString(clusterUrl: string): Promise<any> {
+  private static async createConnectionString(clusterUrl: string): Promise<KustoConnectionStringBuilder> {
     const credential = KustoService.getCredential();
-    
-    // Get a token to trigger authentication
-    log("Requesting authentication token...");
-    try {
-      await credential.getToken(KUSTO_SCOPE);
-      log("Authentication successful");
-    } catch (error: any) {
-      log("Authentication failed:", error.message);
-      throw error;
-    }
-    
+
+    // Let the SDK discover the cluster's cloud-specific authentication resource.
     return KustoConnectionStringBuilder.withTokenCredential(clusterUrl, credential);
   }
 
